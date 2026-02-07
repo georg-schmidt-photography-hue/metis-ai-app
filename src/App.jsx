@@ -193,6 +193,7 @@ function App() {
         isLoading={isLoading}
         platform={platform}
         onPlatformChange={setPlatform}
+        onBackToLanding={() => setShowLanding(true)}
       />
 
       <main className="max-w-7xl mx-auto px-6 pt-28 pb-12">

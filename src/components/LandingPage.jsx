@@ -22,15 +22,19 @@ export default function LandingPage({ onStart }) {
         ))}
       </div>
 
-      {/* Solar Loader - bigger */}
-      <div className="mb-10">
+      {/* Logo top-left */}
+      <div className="absolute top-8 left-10">
+        <span className="text-2xl font-bold text-white tracking-widest uppercase">
+          METIS AI
+        </span>
+      </div>
+
+      {/* Solar Loader - pushed lower */}
+      <div className="mt-16 mb-8">
         <SolarLoader size={45} speed={0.7} />
       </div>
 
-      {/* Title & Subtitle */}
-      <h1 className="text-5xl font-bold text-white tracking-widest mb-3 text-center uppercase">
-        METIS AI
-      </h1>
+      {/* Subtitle */}
       <p className="text-lg text-white/50 mb-2 text-center max-w-md">
         Finde die besten Social-Media-Beiträge und erstelle daraus deine eigenen Artikel.
       </p>
@@ -38,14 +42,12 @@ export default function LandingPage({ onStart }) {
         LinkedIn &middot; YouTube &middot; Twitter / X
       </p>
 
-      {/* CTA Button - dark blue with glow border like screenshot */}
+      {/* CTA Button - white/light matching logo, black text */}
       <button
         onClick={onStart}
-        className="relative px-10 py-3.5 text-white text-sm font-medium rounded-2xl cursor-pointer transform hover:scale-105 transition-all"
+        className="relative px-10 py-3.5 text-[#0a0a0a] text-sm font-semibold rounded-2xl cursor-pointer transform hover:scale-105 transition-all bg-white hover:bg-gray-100"
         style={{
-          background: 'linear-gradient(135deg, #1a2744 0%, #0f1a2e 100%)',
-          boxShadow: '0 0 20px rgba(56, 130, 220, 0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
-          border: '1px solid rgba(56, 130, 220, 0.3)',
+          boxShadow: '0 0 25px rgba(255, 255, 255, 0.15)',
         }}
       >
         <span className="relative z-10">Jetzt starten</span>

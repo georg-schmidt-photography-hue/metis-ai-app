@@ -18,7 +18,7 @@ const platforms = [
   )},
 ]
 
-export default function Header({ onSearch, isLoading, platform, onPlatformChange }) {
+export default function Header({ onSearch, isLoading, platform, onPlatformChange, onBackToLanding }) {
   const [searchTerm, setSearchTerm] = useState('')
 
   const handleSubmit = (e) => {
@@ -33,10 +33,18 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
       <div className="max-w-7xl mx-auto px-6">
         {/* Top row: Logo + Platform tabs */}
         <div className="h-14 flex items-center gap-8">
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex items-center gap-3">
             <span className="text-xl font-bold text-[#2D2B28] tracking-tight">
               METIS AI
             </span>
+            {onBackToLanding && (
+              <button
+                onClick={onBackToLanding}
+                className="text-xs text-[#6B6560] hover:text-[#2D2B28] border border-[#E8E4DD] hover:border-[#C4BFB6] px-2 py-1 rounded-lg transition-all cursor-pointer"
+              >
+                Zurück
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-1">
