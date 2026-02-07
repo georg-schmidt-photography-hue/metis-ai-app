@@ -3,8 +3,10 @@ import Header from './components/Header'
 import ContentOutput from './components/ContentOutput'
 import ArticleView from './components/ArticleView'
 import QuickEdits from './components/QuickEdits'
+import LandingPage from './components/LandingPage'
 
 function App() {
+  const [showLanding, setShowLanding] = useState(true)
   const [step, setStep] = useState('idle') // idle | searching | posts | generating | refining
   const [topPosts, setTopPosts] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -46,13 +48,13 @@ function App() {
       const data = await response.json()
 
       if (!data.success || !data.posts || data.posts.length === 0) {
-        throw new Error('No posts found. Try a different search term.')
+        throw new Error('Keine Beiträge gefunden. Versuche einen anderen Suchbegriff.')
       }
 
       setTopPosts(data.posts)
       setStep('posts')
     } catch (err) {
-      setError(err.message || 'Failed to search. Please try again.')
+      setError(err.message || 'Suche fehlgeschlagen. Bitte versuche es erneut.')
       setStep('idle')
     }
   }
@@ -87,7 +89,7 @@ function App() {
       const data = await response.json()
       const content = data.generatedPost || data.output || data.text || ''
 
-      if (!content) throw new Error('No content received from the server.')
+      if (!content) throw new Error('Keine Inhalte vom Server erhalten.')
 
       const contentStr = typeof content === 'string' ? content : JSON.stringify(content, null, 2)
 
@@ -97,7 +99,7 @@ function App() {
       }))
       setStep('posts')
     } catch (err) {
-      setError(err.message || 'Failed to generate content. Please try again.')
+      setError(err.message || 'Erstellung fehlgeschlagen. Bitte versuche es erneut.')
       setStep('posts')
     } finally {
       setGeneratingIndex(null)
@@ -132,7 +134,7 @@ function App() {
       const data = await response.json()
       const content = data.generatedPost || data.output || data.text || ''
 
-      if (!content) throw new Error('No content received from the server.')
+      if (!content) throw new Error('Keine Inhalte vom Server erhalten.')
 
       const contentStr = typeof content === 'string' ? content : JSON.stringify(content, null, 2)
 
@@ -142,7 +144,7 @@ function App() {
       }))
       setStep('posts')
     } catch (err) {
-      setError(err.message || 'Failed to refine. Please try again.')
+      setError(err.message || 'Anpassung fehlgeschlagen. Bitte versuche es erneut.')
       setStep('posts')
     }
   }
@@ -179,6 +181,10 @@ function App() {
 
   const isLoading = step === 'searching' || step === 'generating' || step === 'refining'
   const isViewingArticle = viewingPostId !== null && generatedPosts[viewingPostId]
+
+  if (showLanding) {
+    return <LandingPage onStart={() => setShowLanding(false)} />
+  }
 
   return (
     <div className="min-h-screen bg-[#F7F5F0]">
