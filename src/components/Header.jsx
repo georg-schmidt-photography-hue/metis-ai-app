@@ -35,7 +35,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
         <div className="h-14 flex items-center gap-8">
           <div className="flex-shrink-0">
             <span className="text-xl font-bold text-[#2D2B28] tracking-tight">
-              Metis AI
+              METIS AI
             </span>
           </div>
 
