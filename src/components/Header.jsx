@@ -33,18 +33,21 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
       <div className="max-w-7xl mx-auto px-6">
         {/* Top row: Logo + Platform tabs */}
         <div className="h-14 flex items-center gap-8">
-          <div className="flex-shrink-0 flex items-center gap-3">
-            <span className="text-xl font-bold text-[#2D2B28] tracking-tight">
-              METIS AI
-            </span>
+          <div className="flex-shrink-0 flex items-center gap-2">
             {onBackToLanding && (
               <button
                 onClick={onBackToLanding}
-                className="text-xs text-[#6B6560] hover:text-[#2D2B28] border border-[#E8E4DD] hover:border-[#C4BFB6] px-2 py-1 rounded-lg transition-all cursor-pointer"
+                className="w-7 h-7 flex items-center justify-center text-[#A39E93] hover:text-[#2D2B28] hover:bg-[#F0EDE8] rounded-lg transition-all cursor-pointer"
+                title="Zur Startseite"
               >
-                Zurück
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
               </button>
             )}
+            <span className="text-xl font-bold text-[#2D2B28] tracking-tight">
+              METIS AI
+            </span>
           </div>
 
           <div className="flex items-center gap-1">
