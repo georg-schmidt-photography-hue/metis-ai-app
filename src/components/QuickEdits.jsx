@@ -43,7 +43,7 @@ const sections = [
 function ChipGroup({ label, options, selected, onSelect, multi }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+      <label className="block text-xs font-medium text-[#8A8578] uppercase tracking-wide mb-2">
         {label}
       </label>
       <div className="flex flex-wrap gap-2">
@@ -59,8 +59,8 @@ function ChipGroup({ label, options, selected, onSelect, multi }) {
               onClick={() => onSelect(opt.value)}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
-                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
+                  ? 'bg-[#FEF3C7] border-[#D97706] text-[#92400E]'
+                  : 'bg-white border-[#E8E4DD] text-[#6B6560] hover:bg-[#F7F5F0] hover:border-[#C4BFB6]'
               }`}
             >
               {opt.label}
@@ -72,7 +72,7 @@ function ChipGroup({ label, options, selected, onSelect, multi }) {
   )
 }
 
-export default function QuickEdits({ settings, onSettingsChange }) {
+export default function QuickEdits({ settings, onSettingsChange, step, onRefine, isLoading }) {
   const handleSelect = (key, value, multi) => {
     if (multi) {
       const current = settings.quickEdits || []
@@ -85,9 +85,11 @@ export default function QuickEdits({ settings, onSettingsChange }) {
     }
   }
 
+  const showRefineButton = step === 'result'
+
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5">
-      <h2 className="text-sm font-semibold text-gray-900 mb-5">Quick Edits</h2>
+    <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-xl p-5 shadow-sm">
+      <h2 className="text-sm font-semibold text-[#2D2B28] mb-5">Quick Edits</h2>
       <div className="space-y-5">
         {sections.map((section) => (
           <ChipGroup
@@ -100,6 +102,23 @@ export default function QuickEdits({ settings, onSettingsChange }) {
           />
         ))}
       </div>
+
+      {showRefineButton && (
+        <button
+          onClick={onRefine}
+          disabled={isLoading}
+          className="w-full mt-6 py-2.5 px-4 bg-[#D97706] hover:bg-[#B45309] disabled:bg-[#D4A574] text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed"
+        >
+          {isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Refining...
+            </span>
+          ) : (
+            'Post anpassen'
+          )}
+        </button>
+      )}
     </div>
   )
 }

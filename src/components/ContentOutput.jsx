@@ -33,14 +33,13 @@ export default function ContentOutput({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 min-h-[400px] relative">
-      {/* Header */}
+    <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-xl p-6 min-h-[400px] relative shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           {step === 'result' && (
             <button
               onClick={onBackToPosts}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-indigo-600 transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-xs text-[#8A8578] hover:text-[#D97706] transition-colors cursor-pointer"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -48,10 +47,10 @@ export default function ContentOutput({
               Back to Posts
             </button>
           )}
-          <h2 className="text-sm font-semibold text-gray-900">
+          <h2 className="text-sm font-semibold text-[#2D2B28]">
             {step === 'posts' || step === 'generating'
               ? 'Top Posts'
-              : step === 'result'
+              : step === 'result' || step === 'refining'
               ? 'Generated Post'
               : 'Output'}
           </h2>
@@ -59,11 +58,11 @@ export default function ContentOutput({
         {step === 'result' && generatedPost && (
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#E8E4DD] text-[#6B6560] hover:bg-[#F7F5F0] hover:text-[#2D2B28] transition-all cursor-pointer"
           >
             {copied ? (
               <>
-                <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 Copied!
@@ -80,7 +79,7 @@ export default function ContentOutput({
         )}
       </div>
 
-      <div className="border-t border-gray-100 pt-4">
+      <div className="border-t border-[#E8E4DD] pt-4">
         {step === 'searching' ? (
           <LoadingSkeleton text="Searching for top posts..." />
         ) : step === 'posts' ? (
@@ -92,12 +91,14 @@ export default function ContentOutput({
           />
         ) : step === 'generating' ? (
           <LoadingSkeleton text="Generating your post..." />
+        ) : step === 'refining' ? (
+          <LoadingSkeleton text="Refining your post..." />
         ) : step === 'result' && generatedPost ? (
-          <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+          <div className="text-sm text-[#2D2B28] leading-relaxed whitespace-pre-wrap">
             {generatedPost}
           </div>
         ) : error ? (
-          <div className="flex items-center gap-2 text-red-500 text-sm">
+          <div className="flex items-center gap-2 text-red-600 text-sm">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
             </svg>
@@ -105,10 +106,10 @@ export default function ContentOutput({
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <svg className="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-12 h-12 text-[#D4CFC5] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
             </svg>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-[#A39E93]">
               Enter a topic and press Enter to discover top LinkedIn posts
             </p>
           </div>

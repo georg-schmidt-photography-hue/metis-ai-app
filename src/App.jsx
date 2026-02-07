@@ -4,7 +4,7 @@ import ContentOutput from './components/ContentOutput'
 import QuickEdits from './components/QuickEdits'
 
 function App() {
-  const [step, setStep] = useState('idle') // idle | searching | posts | generating | result
+  const [step, setStep] = useState('idle') // idle | searching | posts | generating | refining | result
   const [topPosts, setTopPosts] = useState([])
   const [generatedPost, setGeneratedPost] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
@@ -32,9 +32,7 @@ function App() {
         body: JSON.stringify({ searchTerm: term }),
       })
 
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`)
-      }
+      if (!response.ok) throw new Error(`Server error: ${response.status}`)
 
       const data = await response.json()
 
@@ -50,7 +48,7 @@ function App() {
     }
   }
 
-  // Step 2: Generate post from top posts + settings
+  // Step 2: Generate new post from top posts + settings
   const handleGenerate = async () => {
     setStep('generating')
     setError(null)
@@ -70,22 +68,53 @@ function App() {
         }),
       })
 
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`)
-      }
+      if (!response.ok) throw new Error(`Server error: ${response.status}`)
 
       const data = await response.json()
       const post = data.generatedPost || data.output || data.text || ''
 
-      if (!post) {
-        throw new Error('No content received from the server.')
-      }
+      if (!post) throw new Error('No content received from the server.')
 
       setGeneratedPost(typeof post === 'string' ? post : JSON.stringify(post, null, 2))
       setStep('result')
     } catch (err) {
       setError(err.message || 'Failed to generate content. Please try again.')
-      setStep('posts') // go back to posts view on error
+      setStep('posts')
+    }
+  }
+
+  // Step 3: Refine existing post with Quick Edits
+  const handleRefine = async () => {
+    setStep('refining')
+    setError(null)
+
+    try {
+      const response = await fetch(import.meta.env.VITE_N8N_GENERATE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          existingPost: generatedPost,
+          searchTerm,
+          tone: settings.tone,
+          length: settings.length,
+          engagement: settings.engagement,
+          format: settings.format,
+          quickEdits: settings.quickEdits || [],
+        }),
+      })
+
+      if (!response.ok) throw new Error(`Server error: ${response.status}`)
+
+      const data = await response.json()
+      const post = data.generatedPost || data.output || data.text || ''
+
+      if (!post) throw new Error('No content received from the server.')
+
+      setGeneratedPost(typeof post === 'string' ? post : JSON.stringify(post, null, 2))
+      setStep('result')
+    } catch (err) {
+      setError(err.message || 'Failed to refine. Please try again.')
+      setStep('result')
     }
   }
 
@@ -94,10 +123,10 @@ function App() {
     setGeneratedPost('')
   }
 
-  const isLoading = step === 'searching' || step === 'generating'
+  const isLoading = step === 'searching' || step === 'generating' || step === 'refining'
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
+    <div className="min-h-screen bg-[#F7F5F0]">
       <Header onSearch={handleSearch} isLoading={isLoading} />
 
       <main className="max-w-7xl mx-auto px-6 pt-24 pb-12">
@@ -119,6 +148,9 @@ function App() {
             <QuickEdits
               settings={settings}
               onSettingsChange={setSettings}
+              step={step}
+              onRefine={handleRefine}
+              isLoading={isLoading}
             />
           </div>
         </div>
