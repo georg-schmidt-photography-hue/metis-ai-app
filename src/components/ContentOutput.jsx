@@ -1,18 +1,28 @@
 import { useState } from 'react'
 import LoadingSkeleton from './LoadingSkeleton'
+import PostsGrid from './PostsGrid'
 
-export default function ContentOutput({ content, isLoading, error }) {
+export default function ContentOutput({
+  step,
+  topPosts,
+  searchTerm,
+  generatedPost,
+  isLoading,
+  error,
+  onGenerate,
+  onBackToPosts,
+}) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
-    if (!content) return
+    if (!generatedPost) return
     try {
-      await navigator.clipboard.writeText(content)
+      await navigator.clipboard.writeText(generatedPost)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
       const textarea = document.createElement('textarea')
-      textarea.value = content
+      textarea.value = generatedPost
       document.body.appendChild(textarea)
       textarea.select()
       document.execCommand('copy')
@@ -24,9 +34,29 @@ export default function ContentOutput({ content, isLoading, error }) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 min-h-[400px] relative">
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-gray-900">Generated Post</h2>
-        {content && (
+        <div className="flex items-center gap-3">
+          {step === 'result' && (
+            <button
+              onClick={onBackToPosts}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-indigo-600 transition-colors cursor-pointer"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+              Back to Posts
+            </button>
+          )}
+          <h2 className="text-sm font-semibold text-gray-900">
+            {step === 'posts' || step === 'generating'
+              ? 'Top Posts'
+              : step === 'result'
+              ? 'Generated Post'
+              : 'Output'}
+          </h2>
+        </div>
+        {step === 'result' && generatedPost && (
           <button
             onClick={handleCopy}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all cursor-pointer"
@@ -51,8 +81,21 @@ export default function ContentOutput({ content, isLoading, error }) {
       </div>
 
       <div className="border-t border-gray-100 pt-4">
-        {isLoading ? (
-          <LoadingSkeleton />
+        {step === 'searching' ? (
+          <LoadingSkeleton text="Searching for top posts..." />
+        ) : step === 'posts' ? (
+          <PostsGrid
+            posts={topPosts}
+            searchTerm={searchTerm}
+            onGenerate={onGenerate}
+            isGenerating={false}
+          />
+        ) : step === 'generating' ? (
+          <LoadingSkeleton text="Generating your post..." />
+        ) : step === 'result' && generatedPost ? (
+          <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+            {generatedPost}
+          </div>
         ) : error ? (
           <div className="flex items-center gap-2 text-red-500 text-sm">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,17 +103,13 @@ export default function ContentOutput({ content, isLoading, error }) {
             </svg>
             {error}
           </div>
-        ) : content ? (
-          <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-            {content}
-          </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <svg className="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
             </svg>
             <p className="text-sm text-gray-400">
-              Enter a topic and press Enter to generate your LinkedIn post
+              Enter a topic and press Enter to discover top LinkedIn posts
             </p>
           </div>
         )}
