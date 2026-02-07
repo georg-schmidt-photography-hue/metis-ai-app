@@ -1,6 +1,10 @@
+import { useState } from 'react'
 import PostCard from './PostCard'
+import PostDetailModal from './PostDetailModal'
 
 export default function PostsGrid({ posts, searchTerm, platform, generatedPosts, generatingIndex, onGenerateForPost, onViewPost, onRefresh, onFetchFresh, isSearching }) {
+  const [detailIndex, setDetailIndex] = useState(null)
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -44,9 +48,19 @@ export default function PostsGrid({ posts, searchTerm, platform, generatedPosts,
             isGenerating={generatingIndex === i}
             onGenerate={() => onGenerateForPost(i)}
             onView={() => onViewPost(i)}
+            onShowDetail={() => setDetailIndex(i)}
           />
         ))}
       </div>
+
+      {detailIndex !== null && posts[detailIndex] && (
+        <PostDetailModal
+          post={posts[detailIndex]}
+          index={detailIndex}
+          platform={platform}
+          onClose={() => setDetailIndex(null)}
+        />
+      )}
     </div>
   )
 }
