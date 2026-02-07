@@ -1,11 +1,13 @@
 import SolarLoader from './ui/SolarLoader'
 
+const BRAND = '#D4952B'
+
 export default function LandingPage({ onStart }) {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] relative overflow-hidden flex flex-col">
+    <div className="h-screen bg-[#0a0a0a] relative overflow-hidden flex flex-col">
       {/* Background stars */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {Array.from({ length: 80 }).map((_, i) => (
+        {Array.from({ length: 60 }).map((_, i) => (
           <div
             key={i}
             className="absolute rounded-full bg-white"
@@ -14,7 +16,7 @@ export default function LandingPage({ onStart }) {
               height: `${Math.random() * 2 + 0.5}px`,
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
-              opacity: Math.random() * 0.4 + 0.05,
+              opacity: Math.random() * 0.3 + 0.05,
               animation: `twinkle ${Math.random() * 4 + 2}s ease-in-out infinite`,
               animationDelay: `${Math.random() * 4}s`,
             }}
@@ -23,53 +25,73 @@ export default function LandingPage({ onStart }) {
       </div>
 
       {/* Top Nav */}
-      <nav className="relative z-10 flex items-center justify-between px-8 md:px-12 py-6">
-        <span className="text-xl font-bold text-white tracking-tight">
-          METIS AI
-        </span>
+      <nav className="relative z-10 flex items-center justify-between px-8 md:px-12 py-5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-lg font-semibold tracking-widest" style={{ color: BRAND }}>
+            METIS AI
+          </span>
+          <span
+            className="inline-block w-2 h-2 rounded-full"
+            style={{ backgroundColor: BRAND }}
+          />
+        </div>
         <button
           onClick={onStart}
-          className="text-sm text-white/50 hover:text-white border border-white/15 hover:border-white/30 px-4 py-2 rounded-xl transition-all cursor-pointer"
+          className="text-sm px-4 py-1.5 rounded-lg transition-all cursor-pointer"
+          style={{
+            color: BRAND,
+            border: `1px solid ${BRAND}33`,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = `${BRAND}66`
+            e.currentTarget.style.backgroundColor = `${BRAND}0D`
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = `${BRAND}33`
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
         >
           Dashboard
         </button>
       </nav>
 
       {/* Hero Section */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 -mt-8">
-        {/* Solar System */}
-        <div className="mb-6">
-          <SolarLoader size={50} speed={0.7} />
+      <div className="flex-1 flex flex-col items-center justify-center px-6 min-h-0 pb-4">
+        {/* Solar System - reduced */}
+        <div className="mb-4">
+          <SolarLoader size={22} speed={0.7} />
         </div>
 
         {/* Headline */}
-        <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-4 text-center leading-tight">
+        <h1 className="text-2xl md:text-3xl font-semibold text-white/90 tracking-tight mb-3 text-center">
           Dein KI-Content-Assistent
         </h1>
 
         {/* Subtitle */}
-        <p className="text-base md:text-lg text-white/40 mb-8 text-center max-w-lg leading-relaxed">
+        <p className="text-sm md:text-base text-white/35 mb-6 text-center max-w-md leading-relaxed">
           Finde Top-Beiträge, analysiere Erfolgsmuster und erstelle deine eigenen Artikel.
         </p>
 
         {/* CTA Button */}
         <button
           onClick={onStart}
-          className="group relative px-8 py-3 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
+          className="px-7 py-2.5 rounded-lg cursor-pointer transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] text-sm font-semibold text-[#0a0a0a] tracking-wide"
           style={{
-            background: 'linear-gradient(135deg, #ffffff 0%, #e8e4dd 100%)',
-            boxShadow: '0 0 30px rgba(255,255,255,0.08), 0 1px 3px rgba(0,0,0,0.3)',
+            backgroundColor: BRAND,
+            boxShadow: `0 0 24px ${BRAND}22, 0 1px 3px rgba(0,0,0,0.4)`,
           }}
         >
-          <span className="text-sm font-semibold text-[#0a0a0a] tracking-wide">
-            Jetzt starten
-          </span>
+          Jetzt starten
         </button>
 
         {/* Platform pills */}
-        <div className="flex items-center gap-3 mt-6">
+        <div className="flex items-center gap-2.5 mt-5">
           {['LinkedIn', 'YouTube', 'Twitter / X'].map((p) => (
-            <span key={p} className="text-xs text-white/25 px-3 py-1 rounded-full border border-white/8">
+            <span
+              key={p}
+              className="text-xs px-3 py-1 rounded-full"
+              style={{ color: `${BRAND}66`, border: `1px solid ${BRAND}15` }}
+            >
               {p}
             </span>
           ))}
@@ -77,8 +99,8 @@ export default function LandingPage({ onStart }) {
       </div>
 
       {/* Features Section */}
-      <div className="relative z-10 pb-16 pt-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto px-8">
+      <div className="relative z-10 shrink-0 pb-10 pt-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto px-8">
           <FeatureCard
             icon={
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -107,7 +129,7 @@ export default function LandingPage({ onStart }) {
       <style>{`
         @keyframes twinkle {
           0%, 100% { opacity: 0.05; }
-          50% { opacity: 0.5; }
+          50% { opacity: 0.4; }
         }
       `}</style>
     </div>
@@ -116,13 +138,31 @@ export default function LandingPage({ onStart }) {
 
 function FeatureCard({ icon, title, desc }) {
   return (
-    <div className="text-center p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-      <div className="w-10 h-10 mx-auto mb-3 rounded-xl flex items-center justify-center bg-white/[0.05] border border-white/[0.08]">
-        <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div
+      className="text-center p-4 rounded-xl transition-colors"
+      style={{
+        border: `1px solid ${BRAND}10`,
+        backgroundColor: `${BRAND}05`,
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = `${BRAND}0A`
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = `${BRAND}05`
+      }}
+    >
+      <div
+        className="w-9 h-9 mx-auto mb-2.5 rounded-lg flex items-center justify-center"
+        style={{
+          backgroundColor: `${BRAND}12`,
+          border: `1px solid ${BRAND}20`,
+        }}
+      >
+        <svg className="w-4 h-4" fill="none" stroke={BRAND} strokeOpacity={0.6} viewBox="0 0 24 24">
           {icon}
         </svg>
       </div>
-      <h3 className="text-sm font-medium text-white/70 mb-1">{title}</h3>
+      <h3 className="text-sm font-medium text-white/65 mb-1">{title}</h3>
       <p className="text-xs text-white/30 leading-relaxed">{desc}</p>
     </div>
   )
