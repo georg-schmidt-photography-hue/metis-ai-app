@@ -18,13 +18,13 @@ export default function ContentOutput({
     <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-xl p-6 min-h-[400px] relative shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-[#2D2B28]">
-          {step === 'posts' || step === 'generating' ? 'Top Posts' : 'Output'}
+          {step === 'posts' || step === 'generating' ? 'Top Beiträge' : 'Ergebnis'}
         </h2>
       </div>
 
       <div className="border-t border-[#E8E4DD] pt-4">
         {step === 'searching' ? (
-          <LoadingSkeleton text="Searching for top posts..." />
+          <LoadingSkeleton text="Suche nach Top-Beiträgen..." />
         ) : step === 'posts' || step === 'generating' ? (
           <PostsGrid
             posts={topPosts}
@@ -51,7 +51,7 @@ export default function ContentOutput({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
             </svg>
             <p className="text-sm text-[#A39E93]">
-              Enter a topic and press Enter to discover top posts
+              Gib ein Thema ein und drücke Enter, um Top-Beiträge zu finden
             </p>
           </div>
         )}

@@ -1,6 +1,6 @@
 export default function PostCard({ post, index, platform, hasGeneratedContent, isGenerating, onGenerate, onView, onShowDetail }) {
   const text = post.text || ''
-  const title = text.split('\n')[0]?.slice(0, 80) || 'Untitled Post'
+  const title = text.split('\n')[0]?.slice(0, 80) || 'Ohne Titel'
   const description = text.split('\n').slice(1).join(' ').trim()
 
   const platformLabels = {
@@ -24,7 +24,7 @@ export default function PostCard({ post, index, platform, hasGeneratedContent, i
             #{index + 1}
           </div>
           <p className="text-xs text-[#8A8578] truncate">
-            {post.authorName || 'Unknown'}
+            {post.authorName || 'Unbekannt'}
           </p>
         </div>
         <span className={`text-[10px] font-medium px-2 py-0.5 rounded-md border flex-shrink-0 ${platformColors[platform] || platformColors.linkedin}`}>
@@ -47,15 +47,30 @@ export default function PostCard({ post, index, platform, hasGeneratedContent, i
 
       {/* Footer: Details + Action button */}
       <div className="border-t border-[#E8E4DD] pt-3 mt-auto">
-        <button
-          onClick={onShowDetail}
-          className="flex items-center gap-1 text-[11px] text-[#8A8578] hover:text-[#D97706] transition-colors mb-2 cursor-pointer"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.25 12H8.25m6.75-3H8.25M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-          </svg>
-          View Content & Analysis
-        </button>
+        <div className="flex items-center gap-3 mb-2">
+          <button
+            onClick={onShowDetail}
+            className="flex items-center gap-1 text-[11px] text-[#8A8578] hover:text-[#D97706] transition-colors cursor-pointer"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.25 12H8.25m6.75-3H8.25M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+            Inhalt & Analyse
+          </button>
+          {post.url && (
+            <a
+              href={post.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-[11px] text-[#8A8578] hover:text-[#D97706] transition-colors ml-auto"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+              Original
+            </a>
+          )}
+        </div>
 
         {hasGeneratedContent ? (
           <div className="flex items-center gap-2">
@@ -63,13 +78,13 @@ export default function PostCard({ post, index, platform, hasGeneratedContent, i
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              Article Created
+              Artikel erstellt
             </span>
             <button
               onClick={onView}
               className="ml-auto px-3 py-1.5 text-xs font-medium rounded-lg border border-[#D97706] text-[#D97706] hover:bg-[#FEF3C7] transition-all cursor-pointer"
             >
-              View
+              Ansehen
             </button>
           </div>
         ) : (
@@ -81,10 +96,10 @@ export default function PostCard({ post, index, platform, hasGeneratedContent, i
             {isGenerating ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Generating...
+                Wird erstellt...
               </span>
             ) : (
-              'Generate Article'
+              'Artikel erstellen'
             )}
           </button>
         )}

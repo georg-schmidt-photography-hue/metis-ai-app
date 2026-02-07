@@ -91,7 +91,7 @@ export default function ArticleView({ content, platform, onBack, onContentChange
     twitter: 'Twitter / X',
   }
 
-  const title = displayContent?.split('\n')[0]?.slice(0, 100) || 'Generated Article'
+  const title = displayContent?.split('\n')[0]?.slice(0, 100) || 'Generierter Artikel'
 
   return (
     <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-xl p-6 min-h-[400px] shadow-sm">
@@ -104,12 +104,12 @@ export default function ArticleView({ content, platform, onBack, onContentChange
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 19.5L8.25 12l7.5-7.5" />
           </svg>
-          Back to Dashboard
+          Zurück zur Übersicht
         </button>
 
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border bg-[#F7F5F0] text-[#8A8578] border-[#E8E4DD]">
-            Based on: {platformLabels[platform] || 'LinkedIn'}
+            Quelle: {platformLabels[platform] || 'LinkedIn'}
           </span>
           <button
             onClick={handleCopy}
@@ -120,14 +120,14 @@ export default function ArticleView({ content, platform, onBack, onContentChange
                 <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                Copied!
+                Kopiert!
               </>
             ) : (
               <>
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
                 </svg>
-                Copy Article
+                Artikel kopieren
               </>
             )}
           </button>
@@ -149,7 +149,7 @@ export default function ArticleView({ content, platform, onBack, onContentChange
               : 'border-transparent text-[#8A8578] hover:text-[#2D2B28]'
           }`}
         >
-          Preview
+          Vorschau
         </button>
         <button
           onClick={() => setActiveTab('edit')}
@@ -159,7 +159,7 @@ export default function ArticleView({ content, platform, onBack, onContentChange
               : 'border-transparent text-[#8A8578] hover:text-[#2D2B28]'
           }`}
         >
-          Edit
+          Bearbeiten
         </button>
       </div>
 
@@ -168,7 +168,7 @@ export default function ArticleView({ content, platform, onBack, onContentChange
         <div className="space-y-4 animate-pulse">
           <div className="flex items-center gap-2 mb-6">
             <div className="w-5 h-5 bg-[#FEF3C7] rounded-full" />
-            <span className="text-sm text-[#D97706] font-medium">Refining your article...</span>
+            <span className="text-sm text-[#D97706] font-medium">Artikel wird angepasst...</span>
           </div>
           <div className="h-4 bg-[#E8E4DD] rounded-lg w-3/4" />
           <div className="h-4 bg-[#E8E4DD] rounded-lg w-full" />

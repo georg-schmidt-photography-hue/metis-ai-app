@@ -80,7 +80,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={`Search ${platforms.find(p => p.value === platform)?.label || ''} topics...`}
+                placeholder={`${platforms.find(p => p.value === platform)?.label || ''} Themen suchen...`}
                 className="w-full pl-12 pr-4 py-2.5 border border-[#E8E4DD] rounded-xl text-sm text-[#2D2B28] placeholder-[#A39E93] bg-[#F7F5F0] focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent focus:bg-white transition-all"
                 disabled={isLoading}
               />

@@ -10,7 +10,7 @@ export default function PostsGrid({ posts, searchTerm, platform, generatedPosts,
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-sm font-semibold text-[#2D2B28]">
-            {posts.length} topics available
+            {posts.length} Beiträge gefunden
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -22,7 +22,7 @@ export default function PostsGrid({ posts, searchTerm, platform, generatedPosts,
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
             </svg>
-            Refresh
+            Aktualisieren
           </button>
           <button
             onClick={onFetchFresh}
@@ -32,7 +32,7 @@ export default function PostsGrid({ posts, searchTerm, platform, generatedPosts,
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
             </svg>
-            Fetch Fresh
+            Neu laden
           </button>
         </div>
       </div>

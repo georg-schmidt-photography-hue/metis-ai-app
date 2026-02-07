@@ -1,30 +1,30 @@
 const sections = [
   {
-    label: 'Tone',
+    label: 'Tonalität',
     key: 'tone',
     options: [
-      { value: 'professional', label: 'More Professional' },
-      { value: 'casual', label: 'More Casual' },
-      { value: 'provocative', label: 'More Authoritative' },
-      { value: 'inspirational', label: 'More Friendly' },
+      { value: 'professional', label: 'Professioneller' },
+      { value: 'casual', label: 'Lockerer' },
+      { value: 'provocative', label: 'Autoritärer' },
+      { value: 'inspirational', label: 'Freundlicher' },
     ],
   },
   {
-    label: 'Length',
+    label: 'Länge',
     key: 'length',
     options: [
-      { value: 'short', label: 'Shorter' },
-      { value: 'long', label: 'Longer' },
-      { value: 'medium', label: 'Add More Detail' },
+      { value: 'short', label: 'Kürzer' },
+      { value: 'long', label: 'Länger' },
+      { value: 'medium', label: 'Mehr Details' },
     ],
   },
   {
     label: 'Engagement',
     key: 'engagement',
     options: [
-      { value: 'high', label: 'Stronger Hook' },
-      { value: 'medium', label: 'Add CTA' },
-      { value: 'low', label: 'More Personal/Storytelling' },
+      { value: 'high', label: 'Stärkerer Hook' },
+      { value: 'medium', label: 'CTA hinzufügen' },
+      { value: 'low', label: 'Persönlicher / Story' },
     ],
   },
   {
@@ -32,10 +32,10 @@ const sections = [
     key: 'format',
     multi: true,
     options: [
-      { value: 'Add Bullet Points', label: 'Add Bullet Points' },
-      { value: 'Add Emojis', label: 'Add Emojis' },
-      { value: 'Remove Emojis', label: 'Remove Emojis' },
-      { value: 'Add Statistics', label: 'Add Statistics' },
+      { value: 'Add Bullet Points', label: 'Aufzählungen' },
+      { value: 'Add Emojis', label: 'Emojis hinzufügen' },
+      { value: 'Remove Emojis', label: 'Emojis entfernen' },
+      { value: 'Add Statistics', label: 'Statistiken' },
     ],
   },
 ]
@@ -89,7 +89,7 @@ export default function QuickEdits({ settings, onSettingsChange, step, onRefine,
 
   return (
     <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-xl p-5 shadow-sm">
-      <h2 className="text-sm font-semibold text-[#2D2B28] mb-5">Quick Edits</h2>
+      <h2 className="text-sm font-semibold text-[#2D2B28] mb-5">Schnellbearbeitung</h2>
       <div className="space-y-5">
         {sections.map((section) => (
           <ChipGroup
@@ -112,7 +112,7 @@ export default function QuickEdits({ settings, onSettingsChange, step, onRefine,
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Refining...
+              Wird angepasst...
             </span>
           ) : (
             'Post anpassen'
