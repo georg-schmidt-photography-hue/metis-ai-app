@@ -194,8 +194,8 @@ export default function AbstractRings({ className = '' }) {
     <div className={className} style={{ width: '100%', height: '100%' }}>
       <Canvas
         camera={{ position: [0, 0, 5.5], fov: 40 }}
-        style={{ background: 'transparent' }}
-        gl={{ alpha: true, antialias: true }}
+        style={{ background: '#0a0a0a' }}
+        gl={{ antialias: true }}
       >
         <Suspense fallback={null}>
           <ParticleScene />

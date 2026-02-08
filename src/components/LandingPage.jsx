@@ -5,6 +5,11 @@ const BRAND = '#D4952B'
 export default function LandingPage({ onStart }) {
   return (
     <div className="h-screen bg-[#0a0a0a] relative overflow-hidden flex flex-col">
+      {/* 3D Particle Shape - fullscreen, no visible box */}
+      <div className="absolute inset-0 pointer-events-none">
+        <AbstractRings />
+      </div>
+
       {/* Top Nav */}
       <nav className="relative z-10 flex items-center justify-between px-8 md:px-16 py-6">
         <div className="flex items-center gap-1.5">
@@ -39,23 +44,9 @@ export default function LandingPage({ onStart }) {
       </nav>
 
       {/* Hero */}
-      <div className="flex-1 relative flex flex-col items-center justify-center px-6">
-        {/* 3D Particle Shape - smaller, no frame clipping */}
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            width: 380,
-            height: 380,
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -60%)',
-          }}
-        >
-          <AbstractRings />
-        </div>
-
-        {/* Headline - with text shadow for readability over 3D */}
-        <h1 className="relative z-10 text-center leading-[1.1] mb-5">
+      <div className="flex-1 relative z-10 flex flex-col items-center justify-center px-6">
+        {/* Headline */}
+        <h1 className="text-center leading-[1.1] mb-5">
           <span
             className="block text-5xl md:text-7xl font-bold text-white tracking-tight"
             style={{ textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}
@@ -76,19 +67,19 @@ export default function LandingPage({ onStart }) {
           </span>
         </h1>
 
-        {/* Subtitle - brighter, better contrast */}
+        {/* Subtitle */}
         <p
-          className="relative z-10 text-base md:text-lg text-white/60 mb-8 text-center max-w-lg leading-relaxed"
+          className="text-base md:text-lg text-white/60 mb-8 text-center max-w-lg leading-relaxed"
           style={{ textShadow: '0 1px 12px rgba(0,0,0,0.9)' }}
         >
           KI-gestützte Suche nach Top-Beiträgen, Analyse von Erfolgsmustern
           und Erstellung eigener Artikel.
         </p>
 
-        {/* CTA Button - larger, more prominent */}
+        {/* CTA Button */}
         <button
           onClick={onStart}
-          className="relative z-10 group flex items-center gap-2.5 px-8 py-3.5 rounded-full cursor-pointer transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] text-base font-semibold tracking-wide"
+          className="group flex items-center gap-2.5 px-9 py-4 rounded-full cursor-pointer transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] text-base font-semibold tracking-wide"
           style={{
             color: '#0a0a0a',
             backgroundColor: '#fff',
@@ -101,26 +92,18 @@ export default function LandingPage({ onStart }) {
           </svg>
         </button>
 
-        {/* Platform pills */}
-        <div className="relative z-10 flex items-center gap-3 mt-6">
+        {/* Platform pills - larger, more spacing below */}
+        <div className="flex items-center gap-4 mt-10">
           {['LinkedIn', 'YouTube', 'Twitter / X'].map((p) => (
             <span
               key={p}
-              className="text-xs px-3.5 py-1.5 rounded-full text-white/35 border border-white/[0.12]"
+              className="text-sm px-4 py-2 rounded-full text-white/40 border border-white/[0.12]"
             >
               {p}
             </span>
           ))}
         </div>
       </div>
-
-      {/* Subtle bottom gradient */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-        style={{
-          background: `linear-gradient(to top, ${BRAND}08, transparent)`,
-        }}
-      />
     </div>
   )
 }
