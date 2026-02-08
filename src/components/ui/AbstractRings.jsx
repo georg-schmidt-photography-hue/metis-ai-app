@@ -1,58 +1,56 @@
 import { Canvas, useFrame } from '@react-three/fiber'
-import { useRef } from 'react'
+import { useRef, useMemo } from 'react'
+import * as THREE from 'three'
 
-function GlowingKnot() {
+function GlowRing({ color, radius, tubeRadius, rotation, speed, phase }) {
   const ref = useRef()
 
-  useFrame((_, delta) => {
-    ref.current.rotation.y += delta * 0.15
-    ref.current.rotation.x += delta * 0.05
+  useFrame((state) => {
+    const t = state.clock.elapsedTime * speed + phase
+    ref.current.rotation.x = rotation[0] + Math.sin(t) * 0.3
+    ref.current.rotation.y = rotation[1] + Math.cos(t * 0.7) * 0.4
+    ref.current.rotation.z = rotation[2] + Math.sin(t * 0.5) * 0.2
   })
 
   return (
-    <group ref={ref}>
-      {/* Main torusKnot - thick, glossy, organic */}
-      <mesh>
-        <torusKnotGeometry args={[1.8, 0.45, 256, 64, 2, 3]} />
-        <meshPhysicalMaterial
-          color="#B8781A"
-          emissive="#D4952B"
-          emissiveIntensity={0.12}
-          metalness={1}
-          roughness={0.18}
-          clearcoat={0.6}
-          clearcoatRoughness={0.1}
-          transparent
-          opacity={0.9}
-          envMapIntensity={1.5}
-        />
-      </mesh>
+    <mesh ref={ref}>
+      <torusGeometry args={[radius, tubeRadius, 64, 128]} />
+      <meshStandardMaterial
+        color={color}
+        emissive={color}
+        emissiveIntensity={0.8}
+        metalness={0.3}
+        roughness={0.2}
+        transparent
+        opacity={0.85}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  )
+}
 
-      {/* Second knot - slightly different shape, more transparent */}
-      <mesh rotation={[Math.PI / 4, Math.PI / 3, 0]}>
-        <torusKnotGeometry args={[1.6, 0.3, 200, 48, 3, 2]} />
-        <meshPhysicalMaterial
-          color="#E8B86D"
-          emissive="#D4952B"
-          emissiveIntensity={0.08}
-          metalness={0.9}
-          roughness={0.22}
-          clearcoat={0.4}
-          clearcoatRoughness={0.15}
-          transparent
-          opacity={0.5}
-        />
-      </mesh>
+function IntertwiningRings() {
+  const groupRef = useRef()
 
-      {/* Inner glow */}
-      <mesh>
-        <sphereGeometry args={[1.2, 32, 32]} />
-        <meshBasicMaterial
-          color="#D4952B"
-          transparent
-          opacity={0.04}
-        />
-      </mesh>
+  useFrame((state) => {
+    groupRef.current.rotation.y = state.clock.elapsedTime * 0.08
+  })
+
+  const rings = useMemo(() => [
+    { color: '#4F46E5', radius: 1.8, tubeRadius: 0.035, rotation: [0, 0, 0], speed: 0.3, phase: 0 },
+    { color: '#7C3AED', radius: 1.6, tubeRadius: 0.035, rotation: [Math.PI / 3, Math.PI / 4, 0], speed: 0.25, phase: 1 },
+    { color: '#06B6D4', radius: 1.7, tubeRadius: 0.03, rotation: [Math.PI / 2, 0, Math.PI / 6], speed: 0.35, phase: 2 },
+    { color: '#10B981', radius: 1.5, tubeRadius: 0.03, rotation: [Math.PI / 5, Math.PI / 2, Math.PI / 3], speed: 0.28, phase: 3 },
+    { color: '#F59E0B', radius: 1.9, tubeRadius: 0.03, rotation: [Math.PI / 4, Math.PI / 6, Math.PI / 2], speed: 0.32, phase: 4 },
+    { color: '#EF4444', radius: 1.4, tubeRadius: 0.025, rotation: [Math.PI / 2.5, Math.PI / 3, 0], speed: 0.22, phase: 5 },
+    { color: '#EC4899', radius: 1.65, tubeRadius: 0.028, rotation: [0, Math.PI / 2, Math.PI / 4], speed: 0.3, phase: 6 },
+  ], [])
+
+  return (
+    <group ref={groupRef}>
+      {rings.map((ring, i) => (
+        <GlowRing key={i} {...ring} />
+      ))}
     </group>
   )
 }
@@ -61,15 +59,14 @@ export default function AbstractRings({ className = '' }) {
   return (
     <div className={className} style={{ width: 600, height: 600 }}>
       <Canvas
-        camera={{ position: [0, 0, 5.5], fov: 40 }}
+        camera={{ position: [0, 0, 5], fov: 45 }}
         style={{ background: 'transparent' }}
         gl={{ alpha: true, antialias: true }}
       >
-        <ambientLight intensity={0.2} />
-        <directionalLight position={[5, 5, 5]} intensity={1.5} color="#F5E0C0" />
-        <directionalLight position={[-3, -2, 4]} intensity={0.8} color="#D4952B" />
-        <pointLight position={[0, 3, 3]} intensity={0.6} color="#ffffff" />
-        <GlowingKnot />
+        <ambientLight intensity={0.15} />
+        <pointLight position={[5, 5, 5]} intensity={0.5} color="#ffffff" />
+        <pointLight position={[-5, -3, 3]} intensity={0.3} color="#7C3AED" />
+        <IntertwiningRings />
       </Canvas>
     </div>
   )
