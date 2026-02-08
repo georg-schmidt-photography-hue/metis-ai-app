@@ -18,7 +18,7 @@ const platforms = [
   )},
 ]
 
-export default function Header({ onSearch, isLoading, platform, onPlatformChange, onBackToLanding }) {
+export default function Header({ onSearch, isLoading, platform, onPlatformChange, onBackToLanding, searchMode, onSearchModeChange }) {
   const [searchTerm, setSearchTerm] = useState('')
 
   const handleSubmit = (e) => {
@@ -70,9 +70,35 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
           <div className="flex-1" />
         </div>
 
-        {/* Bottom row: Search bar */}
-        <div className="pb-3">
-          <form onSubmit={handleSubmit} className="max-w-2xl">
+        {/* Bottom row: Search mode toggle + Search bar */}
+        <div className="pb-3 flex items-center gap-3 max-w-2xl">
+          {/* Search mode toggle */}
+          <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => onSearchModeChange('topic')}
+              className={`px-3 py-2 text-xs font-medium transition-all cursor-pointer ${
+                searchMode === 'topic'
+                  ? 'bg-[#2D2B28] text-white'
+                  : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'
+              }`}
+            >
+              Thema
+            </button>
+            <button
+              type="button"
+              onClick={() => onSearchModeChange('account')}
+              className={`px-3 py-2 text-xs font-medium transition-all cursor-pointer ${
+                searchMode === 'account'
+                  ? 'bg-[#2D2B28] text-white'
+                  : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'
+              }`}
+            >
+              Account
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex-1">
             <div className="relative">
               <svg
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A39E93]"
@@ -84,14 +110,20 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={1.5}
-                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  d={searchMode === 'account'
+                    ? "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    : "M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  }
                 />
               </svg>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={`${platforms.find(p => p.value === platform)?.label || ''} Themen suchen...`}
+                placeholder={searchMode === 'account'
+                  ? `${platforms.find(p => p.value === platform)?.label || ''} Account suchen (@username)`
+                  : `${platforms.find(p => p.value === platform)?.label || ''} Themen suchen...`
+                }
                 className="w-full pl-12 pr-4 py-2.5 border border-[#E8E4DD] rounded-xl text-sm text-[#2D2B28] placeholder-[#A39E93] bg-[#F7F5F0] focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent focus:bg-white transition-all"
                 disabled={isLoading}
               />
