@@ -1,4 +1,4 @@
-import SolarLoader from './ui/SolarLoader'
+import AbstractRings from './ui/AbstractRings'
 
 const BRAND = '#D4952B'
 
@@ -40,9 +40,16 @@ export default function LandingPage({ onStart }) {
 
       {/* Hero */}
       <div className="flex-1 relative flex flex-col items-center justify-center px-6">
-        {/* SolarLoader as abstract background element */}
-        <div className="absolute opacity-40 pointer-events-none" style={{ top: '8%', right: '10%' }}>
-          <SolarLoader size={18} speed={0.5} />
+        {/* Animated 3D rings - abstract background element */}
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -55%)',
+          }}
+        >
+          <AbstractRings />
         </div>
 
         {/* Headline */}
