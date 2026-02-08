@@ -1,7 +1,6 @@
 import { Suspense, useRef, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useFBO } from '@react-three/drei'
-import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 
 const simulationMaterial = new THREE.ShaderMaterial({
@@ -47,6 +46,8 @@ const simulationMaterial = new THREE.ShaderMaterial({
 })
 
 const renderMaterial = new THREE.ShaderMaterial({
+  transparent: true,
+  depthWrite: false,
   vertexShader: `
     uniform sampler2D uPosition;
     uniform float uTime;
@@ -55,7 +56,7 @@ const renderMaterial = new THREE.ShaderMaterial({
     void main() {
       vec3 pos = texture2D(uPosition, position.xy).xyz;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-      gl_PointSize = 1.5;
+      gl_PointSize = 2.0;
 
       vec3 nPos = normalize(pos) * 0.5 + 0.5;
       vec3 gold = vec3(0.831, 0.584, 0.168);
@@ -70,7 +71,10 @@ const renderMaterial = new THREE.ShaderMaterial({
   fragmentShader: `
     varying vec3 vColor;
     void main() {
-      gl_FragColor = vec4(vColor, 1.0);
+      float d = length(gl_PointCoord - vec2(0.5));
+      if (d > 0.5) discard;
+      float a = 1.0 - smoothstep(0.3, 0.5, d);
+      gl_FragColor = vec4(vColor * 1.3, a);
     }
   `,
   uniforms: {
@@ -87,20 +91,18 @@ const simMesh = new THREE.Mesh(simPlane, simulationMaterial)
 simScene.add(simMesh)
 
 function ParticleScene() {
-  const size = 256
+  const size = 192
   const pointsRef = useRef()
+  const pingPong = useRef(0)
   const { gl } = useThree()
 
-  const fbo1 = useFBO(size, size, {
+  const fboSettings = {
     type: THREE.FloatType,
     minFilter: THREE.NearestFilter,
     magFilter: THREE.NearestFilter,
-  })
-  const fbo2 = useFBO(size, size, {
-    type: THREE.FloatType,
-    minFilter: THREE.NearestFilter,
-    magFilter: THREE.NearestFilter,
-  })
+  }
+  const fbo1 = useFBO(size, size, fboSettings)
+  const fbo2 = useFBO(size, size, fboSettings)
 
   const { originalPositionTexture, particlePositions } = useMemo(() => {
     const particles = new Float32Array(size * size * 4)
@@ -148,21 +150,20 @@ function ParticleScene() {
 
   useFrame((state) => {
     const { gl, clock } = state
+    const current = pingPong.current === 0 ? fbo1 : fbo2
+    const target = pingPong.current === 0 ? fbo2 : fbo1
 
-    // Reuse pre-allocated objects instead of creating new ones each frame
-    simulationMaterial.uniforms.uCurrentPosition.value = fbo1.texture
+    simulationMaterial.uniforms.uCurrentPosition.value = current.texture
     simulationMaterial.uniforms.uOriginalPosition.value = originalPositionTexture
     simulationMaterial.uniforms.uTime.value = clock.elapsedTime
 
-    gl.setRenderTarget(fbo2)
+    gl.setRenderTarget(target)
     gl.render(simScene, simCamera)
     gl.setRenderTarget(null)
 
-    const temp = fbo1.texture
-    fbo1.texture = fbo2.texture
-    fbo2.texture = temp
+    pingPong.current = 1 - pingPong.current
 
-    renderMaterial.uniforms.uPosition.value = fbo1.texture
+    renderMaterial.uniforms.uPosition.value = target.texture
     renderMaterial.uniforms.uTime.value = clock.elapsedTime
 
     if (pointsRef.current) {
@@ -172,22 +173,17 @@ function ParticleScene() {
   })
 
   return (
-    <>
-      <points ref={pointsRef} position={[0, 0.8, 0]}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={size * size}
-            array={particlePositions}
-            itemSize={3}
-          />
-        </bufferGeometry>
-        <primitive object={renderMaterial} attach="material" />
-      </points>
-      <EffectComposer>
-        <Bloom intensity={0.6} luminanceThreshold={0.1} luminanceSmoothing={0.9} height={512} />
-      </EffectComposer>
-    </>
+    <points ref={pointsRef} position={[0, 0.8, 0]}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={size * size}
+          array={particlePositions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <primitive object={renderMaterial} attach="material" />
+    </points>
   )
 }
 
@@ -198,7 +194,7 @@ export default function AbstractRings({ className = '' }) {
         camera={{ position: [0, 0, 9], fov: 40 }}
         style={{ background: '#0a0a0a' }}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
-        dpr={[1, 1.5]}
+        dpr={1}
       >
         <Suspense fallback={null}>
           <ParticleScene />
