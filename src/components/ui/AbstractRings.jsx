@@ -57,11 +57,10 @@ const renderMaterial = new THREE.ShaderMaterial({
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
       gl_PointSize = 1.5;
 
-      // Gold/Amber color palette based on position
       vec3 nPos = normalize(pos) * 0.5 + 0.5;
-      vec3 gold = vec3(0.831, 0.584, 0.168);      // #D4952B
-      vec3 amber = vec3(0.906, 0.722, 0.427);      // E7B86D
-      vec3 deepGold = vec3(0.722, 0.471, 0.102);   // B8781A
+      vec3 gold = vec3(0.831, 0.584, 0.168);
+      vec3 amber = vec3(0.906, 0.722, 0.427);
+      vec3 deepGold = vec3(0.722, 0.471, 0.102);
 
       float t = nPos.x * 0.5 + nPos.y * 0.3 + nPos.z * 0.2;
       vColor = mix(deepGold, gold, smoothstep(0.0, 0.5, t));
@@ -79,6 +78,13 @@ const renderMaterial = new THREE.ShaderMaterial({
     uTime: { value: 0 },
   },
 })
+
+// Pre-allocate objects used every frame (avoids GC stuttering)
+const simScene = new THREE.Scene()
+const simCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
+const simPlane = new THREE.PlaneGeometry(2, 2)
+const simMesh = new THREE.Mesh(simPlane, simulationMaterial)
+simScene.add(simMesh)
 
 function ParticleScene() {
   const size = 256
@@ -142,18 +148,14 @@ function ParticleScene() {
 
   useFrame((state) => {
     const { gl, clock } = state
-    const scene = new THREE.Scene()
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
 
+    // Reuse pre-allocated objects instead of creating new ones each frame
     simulationMaterial.uniforms.uCurrentPosition.value = fbo1.texture
     simulationMaterial.uniforms.uOriginalPosition.value = originalPositionTexture
     simulationMaterial.uniforms.uTime.value = clock.elapsedTime
 
-    const simulationMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), simulationMaterial)
-    scene.add(simulationMesh)
-
     gl.setRenderTarget(fbo2)
-    gl.render(scene, camera)
+    gl.render(simScene, simCamera)
     gl.setRenderTarget(null)
 
     const temp = fbo1.texture
@@ -171,7 +173,7 @@ function ParticleScene() {
 
   return (
     <>
-      <points ref={pointsRef}>
+      <points ref={pointsRef} position={[0, 0.8, 0]}>
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
@@ -195,7 +197,8 @@ export default function AbstractRings({ className = '' }) {
       <Canvas
         camera={{ position: [0, 0, 9], fov: 40 }}
         style={{ background: '#0a0a0a' }}
-        gl={{ antialias: true }}
+        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
           <ParticleScene />
