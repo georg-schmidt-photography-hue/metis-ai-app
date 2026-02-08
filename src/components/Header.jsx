@@ -18,7 +18,7 @@ const platforms = [
   )},
 ]
 
-export default function Header({ onSearch, isLoading, platform, onPlatformChange, onBackToLanding, searchMode, onSearchModeChange, sortByRecent, onSortByRecentChange }) {
+export default function Header({ onSearch, isLoading, platform, onPlatformChange, onBackToLanding, searchMode, onSearchModeChange, accountFilter, onAccountFilterChange }) {
   const [searchTerm, setSearchTerm] = useState('')
 
   const handleSubmit = (e) => {
@@ -136,15 +136,30 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
           </form>
 
           {searchMode === 'account' && (
-            <label className="flex items-center gap-1.5 flex-shrink-0 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={sortByRecent}
-                onChange={(e) => onSortByRecentChange(e.target.checked)}
-                className="w-3.5 h-3.5 rounded border-[#C4BFB6] text-[#D97706] focus:ring-[#D97706] cursor-pointer accent-[#D97706]"
-              />
-              <span className="text-xs text-[#6B6560] whitespace-nowrap">Neueste zuerst</span>
-            </label>
+            <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => onAccountFilterChange('top4weeks')}
+                className={`px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap ${
+                  accountFilter === 'top4weeks'
+                    ? 'bg-[#D97706] text-white'
+                    : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'
+                }`}
+              >
+                Top 4 Wochen
+              </button>
+              <button
+                type="button"
+                onClick={() => onAccountFilterChange('last10days')}
+                className={`px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap ${
+                  accountFilter === 'last10days'
+                    ? 'bg-[#D97706] text-white'
+                    : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'
+                }`}
+              >
+                Letzte 10 Tage
+              </button>
+            </div>
           )}
         </div>
       </div>
