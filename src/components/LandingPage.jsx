@@ -40,45 +40,59 @@ export default function LandingPage({ onStart }) {
 
       {/* Hero */}
       <div className="flex-1 relative flex flex-col items-center justify-center px-6">
-        {/* Animated 3D rings - abstract background element */}
+        {/* 3D Particle Shape - smaller, no frame clipping */}
         <div
           className="absolute pointer-events-none"
           style={{
+            width: 380,
+            height: 380,
             top: '50%',
             left: '50%',
-            transform: 'translate(-50%, -55%)',
+            transform: 'translate(-50%, -60%)',
           }}
         >
           <AbstractRings />
         </div>
 
-        {/* Headline */}
-        <h1 className="relative z-10 text-center leading-[1.1] mb-6">
-          <span className="block text-5xl md:text-7xl font-bold text-white tracking-tight">
+        {/* Headline - with text shadow for readability over 3D */}
+        <h1 className="relative z-10 text-center leading-[1.1] mb-5">
+          <span
+            className="block text-5xl md:text-7xl font-bold text-white tracking-tight"
+            style={{ textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}
+          >
             Finden.
           </span>
-          <span className="block text-5xl md:text-7xl font-bold text-white tracking-tight">
+          <span
+            className="block text-5xl md:text-7xl font-bold text-white tracking-tight"
+            style={{ textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}
+          >
             Analysieren.
           </span>
-          <span className="block text-5xl md:text-7xl font-bold tracking-tight" style={{ color: BRAND }}>
+          <span
+            className="block text-5xl md:text-7xl font-bold tracking-tight"
+            style={{ color: BRAND, textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}
+          >
             Erstellen.
           </span>
         </h1>
 
-        {/* Subtitle */}
-        <p className="relative z-10 text-base md:text-lg text-white/40 mb-10 text-center max-w-lg leading-relaxed">
+        {/* Subtitle - brighter, better contrast */}
+        <p
+          className="relative z-10 text-base md:text-lg text-white/60 mb-8 text-center max-w-lg leading-relaxed"
+          style={{ textShadow: '0 1px 12px rgba(0,0,0,0.9)' }}
+        >
           KI-gestützte Suche nach Top-Beiträgen, Analyse von Erfolgsmustern
           und Erstellung eigener Artikel.
         </p>
 
-        {/* CTA Button */}
+        {/* CTA Button - larger, more prominent */}
         <button
           onClick={onStart}
-          className="relative z-10 group flex items-center gap-2 px-7 py-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] text-sm font-semibold tracking-wide"
+          className="relative z-10 group flex items-center gap-2.5 px-8 py-3.5 rounded-full cursor-pointer transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] text-base font-semibold tracking-wide"
           style={{
             color: '#0a0a0a',
             backgroundColor: '#fff',
-            boxShadow: '0 0 40px rgba(255,255,255,0.06)',
+            boxShadow: '0 0 40px rgba(255,255,255,0.08)',
           }}
         >
           Jetzt starten
@@ -88,11 +102,11 @@ export default function LandingPage({ onStart }) {
         </button>
 
         {/* Platform pills */}
-        <div className="relative z-10 flex items-center gap-3 mt-8">
+        <div className="relative z-10 flex items-center gap-3 mt-6">
           {['LinkedIn', 'YouTube', 'Twitter / X'].map((p) => (
             <span
               key={p}
-              className="text-xs px-3.5 py-1.5 rounded-full text-white/25 border border-white/[0.08]"
+              className="text-xs px-3.5 py-1.5 rounded-full text-white/35 border border-white/[0.12]"
             >
               {p}
             </span>

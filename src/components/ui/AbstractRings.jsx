@@ -56,7 +56,16 @@ const renderMaterial = new THREE.ShaderMaterial({
       vec3 pos = texture2D(uPosition, position.xy).xyz;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
       gl_PointSize = 1.5;
-      vColor = normalize(pos) * 0.5 + 0.5;
+
+      // Gold/Amber color palette based on position
+      vec3 nPos = normalize(pos) * 0.5 + 0.5;
+      vec3 gold = vec3(0.831, 0.584, 0.168);      // #D4952B
+      vec3 amber = vec3(0.906, 0.722, 0.427);      // E7B86D
+      vec3 deepGold = vec3(0.722, 0.471, 0.102);   // B8781A
+
+      float t = nPos.x * 0.5 + nPos.y * 0.3 + nPos.z * 0.2;
+      vColor = mix(deepGold, gold, smoothstep(0.0, 0.5, t));
+      vColor = mix(vColor, amber, smoothstep(0.5, 1.0, t));
     }
   `,
   fragmentShader: `
@@ -174,7 +183,7 @@ function ParticleScene() {
         <primitive object={renderMaterial} attach="material" />
       </points>
       <EffectComposer>
-        <Bloom intensity={0.6} luminanceThreshold={0.1} luminanceSmoothing={0.9} height={1024} />
+        <Bloom intensity={0.8} luminanceThreshold={0.1} luminanceSmoothing={0.9} height={1024} />
       </EffectComposer>
     </>
   )
@@ -182,9 +191,9 @@ function ParticleScene() {
 
 export default function AbstractRings({ className = '' }) {
   return (
-    <div className={className} style={{ width: 600, height: 600 }}>
+    <div className={className} style={{ width: '100%', height: '100%' }}>
       <Canvas
-        camera={{ position: [0, 0, 4.5], fov: 45 }}
+        camera={{ position: [0, 0, 5.5], fov: 40 }}
         style={{ background: 'transparent' }}
         gl={{ alpha: true, antialias: true }}
       >
