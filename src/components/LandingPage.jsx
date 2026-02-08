@@ -92,12 +92,12 @@ export default function LandingPage({ onStart }) {
           </svg>
         </button>
 
-        {/* Platform pills - larger, more spacing below */}
-        <div className="flex items-center gap-4 mt-10">
+        {/* Platform pills */}
+        <div className="flex items-center gap-4 mt-12">
           {['LinkedIn', 'YouTube', 'Twitter / X'].map((p) => (
             <span
               key={p}
-              className="text-sm px-4 py-2 rounded-full text-white/40 border border-white/[0.12]"
+              className="text-sm px-5 py-2 rounded-full text-white/50 border border-white/20"
             >
               {p}
             </span>

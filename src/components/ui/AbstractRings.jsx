@@ -81,7 +81,7 @@ const renderMaterial = new THREE.ShaderMaterial({
 })
 
 function ParticleScene() {
-  const size = 512
+  const size = 256
   const pointsRef = useRef()
   const { gl } = useThree()
 
@@ -183,7 +183,7 @@ function ParticleScene() {
         <primitive object={renderMaterial} attach="material" />
       </points>
       <EffectComposer>
-        <Bloom intensity={0.8} luminanceThreshold={0.1} luminanceSmoothing={0.9} height={1024} />
+        <Bloom intensity={0.6} luminanceThreshold={0.1} luminanceSmoothing={0.9} height={512} />
       </EffectComposer>
     </>
   )
@@ -193,7 +193,7 @@ export default function AbstractRings({ className = '' }) {
   return (
     <div className={className} style={{ width: '100%', height: '100%' }}>
       <Canvas
-        camera={{ position: [0, 0, 5.5], fov: 40 }}
+        camera={{ position: [0, 0, 9], fov: 40 }}
         style={{ background: '#0a0a0a' }}
         gl={{ antialias: true }}
       >
