@@ -12,6 +12,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('')
   const [platform, setPlatform] = useState('linkedin')
   const [searchMode, setSearchMode] = useState('topic') // 'topic' | 'account'
+  const [sortByRecent, setSortByRecent] = useState(false)
   const [error, setError] = useState(null)
 
   // Per-card generated content: { [index]: { content, sourcePost } }
@@ -41,7 +42,7 @@ function App() {
       const response = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ searchTerm: term, platform, searchMode }),
+        body: JSON.stringify({ searchTerm: term, platform, searchMode, sortByRecent }),
       })
 
       if (!response.ok) throw new Error(`Server error: ${response.status}`)
@@ -196,6 +197,8 @@ function App() {
         onPlatformChange={setPlatform}
         searchMode={searchMode}
         onSearchModeChange={setSearchMode}
+        sortByRecent={sortByRecent}
+        onSortByRecentChange={setSortByRecent}
         onBackToLanding={() => setShowLanding(true)}
       />
 

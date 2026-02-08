@@ -33,6 +33,8 @@ const simulationMaterial = new THREE.ShaderMaterial({
       vec3 originalPos = texture2D(uOriginalPosition, vUv).xyz;
       vec3 noise = snoise(currentPos * 0.1);
       currentPos += noise * uSpeed;
+      // Pull particles back towards original position to prevent drifting
+      currentPos = mix(currentPos, originalPos, 0.003);
       gl_FragColor = vec4(currentPos, 1.0);
     }
   `,

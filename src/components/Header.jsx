@@ -18,7 +18,7 @@ const platforms = [
   )},
 ]
 
-export default function Header({ onSearch, isLoading, platform, onPlatformChange, onBackToLanding, searchMode, onSearchModeChange }) {
+export default function Header({ onSearch, isLoading, platform, onPlatformChange, onBackToLanding, searchMode, onSearchModeChange, sortByRecent, onSortByRecentChange }) {
   const [searchTerm, setSearchTerm] = useState('')
 
   const handleSubmit = (e) => {
@@ -134,6 +134,18 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
               )}
             </div>
           </form>
+
+          {searchMode === 'account' && (
+            <label className="flex items-center gap-1.5 flex-shrink-0 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={sortByRecent}
+                onChange={(e) => onSortByRecentChange(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-[#C4BFB6] text-[#D97706] focus:ring-[#D97706] cursor-pointer accent-[#D97706]"
+              />
+              <span className="text-xs text-[#6B6560] whitespace-nowrap">Neueste zuerst</span>
+            </label>
+          )}
         </div>
       </div>
     </header>
