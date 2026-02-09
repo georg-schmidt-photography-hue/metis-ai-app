@@ -28,6 +28,12 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
     }
   }
 
+  const handleSearchClick = () => {
+    if (searchTerm.trim() && !isLoading) {
+      onSearch(searchTerm.trim())
+    }
+  }
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#FFFDF9] border-b border-[#E8E4DD]">
       <div className="max-w-7xl mx-auto px-6">
@@ -76,6 +82,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
           <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden flex-shrink-0">
             <button
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => onSearchModeChange('topic')}
               className={`px-3 py-2 text-xs font-medium transition-all cursor-pointer ${
                 searchMode === 'topic'
@@ -87,6 +94,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
             </button>
             <button
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => onSearchModeChange('account')}
               className={`px-3 py-2 text-xs font-medium transition-all cursor-pointer ${
                 searchMode === 'account'
@@ -127,10 +135,17 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                 className="w-full pl-12 pr-4 py-2.5 border border-[#E8E4DD] rounded-xl text-sm text-[#2D2B28] placeholder-[#A39E93] bg-[#F7F5F0] focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent focus:bg-white transition-all"
                 disabled={isLoading}
               />
-              {isLoading && (
+              {isLoading ? (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
                   <div className="w-5 h-5 border-2 border-[#D97706] border-t-transparent rounded-full animate-spin" />
                 </div>
+              ) : (
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#D97706] text-white text-xs font-medium rounded-lg hover:bg-[#B45309] transition-all cursor-pointer"
+                >
+                  Suchen
+                </button>
               )}
             </div>
           </form>
@@ -139,6 +154,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
             <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden flex-shrink-0">
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onAccountFilterChange('top4weeks')}
                 className={`px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap ${
                   accountFilter === 'top4weeks'
@@ -150,6 +166,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
               </button>
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onAccountFilterChange('last10days')}
                 className={`px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap ${
                   accountFilter === 'last10days'
