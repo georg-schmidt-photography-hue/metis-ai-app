@@ -76,6 +76,15 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
           <div className="flex-1" />
         </div>
 
+        {platform !== 'linkedin' && (
+          <div className="pb-1 text-[11px] text-[#D97706] flex items-center gap-1">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+            Suche läuft aktuell über LinkedIn. YouTube & X folgen bald.
+          </div>
+        )}
+
         {/* Bottom row: Search mode toggle + Search bar */}
         <div className="pb-3 flex items-center gap-3 max-w-2xl">
           {/* Search mode toggle */}

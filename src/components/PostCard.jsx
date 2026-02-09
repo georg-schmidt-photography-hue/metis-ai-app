@@ -3,6 +3,13 @@ export default function PostCard({ post, index, platform, hasGeneratedContent, i
   const title = text.split('\n')[0]?.slice(0, 80) || 'Ohne Titel'
   const description = text.split('\n').slice(1).join(' ').trim()
 
+  // Detect actual source from post URL
+  const postUrl = post.url || ''
+  const actualSource = postUrl.includes('linkedin.com') ? 'linkedin'
+    : postUrl.includes('youtube.com') || postUrl.includes('youtu.be') ? 'youtube'
+    : postUrl.includes('twitter.com') || postUrl.includes('x.com') ? 'twitter'
+    : 'linkedin'
+
   const platformLabels = {
     linkedin: 'LinkedIn',
     youtube: 'YouTube',
@@ -27,8 +34,8 @@ export default function PostCard({ post, index, platform, hasGeneratedContent, i
             {post.authorName || 'Unbekannt'}
           </p>
         </div>
-        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-md border flex-shrink-0 ${platformColors[platform] || platformColors.linkedin}`}>
-          {platformLabels[platform] || 'LinkedIn'}
+        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-md border flex-shrink-0 ${platformColors[actualSource] || platformColors.linkedin}`}>
+          {platformLabels[actualSource] || 'LinkedIn'}
         </span>
       </div>
 
