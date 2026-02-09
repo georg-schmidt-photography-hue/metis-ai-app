@@ -150,8 +150,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
             </div>
           </form>
 
-          {searchMode === 'account' && (
-            <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden flex-shrink-0">
+          <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden flex-shrink-0">
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
@@ -176,8 +175,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
               >
                 Letzte 10 Tage
               </button>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </header>
