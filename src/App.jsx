@@ -21,10 +21,6 @@ function App() {
   const [viewingPostId, setViewingPostId] = useState(null)
 
   const [settings, setSettings] = useState({
-    tone: 'professional',
-    length: 'medium',
-    engagement: 'high',
-    format: 'story',
     quickEdits: [],
   })
 
@@ -78,10 +74,6 @@ function App() {
           posts: [post],
           searchTerm,
           platform,
-          tone: settings.tone,
-          length: settings.length,
-          engagement: settings.engagement,
-          format: settings.format,
           quickEdits: settings.quickEdits || [],
         }),
       })
@@ -123,10 +115,6 @@ function App() {
           existingPost: generatedPosts[viewingPostId].content,
           searchTerm,
           platform,
-          tone: settings.tone,
-          length: settings.length,
-          engagement: settings.engagement,
-          format: settings.format,
           quickEdits: settings.quickEdits || [],
         }),
       })

@@ -1,36 +1,31 @@
 const sections = [
   {
     label: 'Tonalität',
-    key: 'tone',
     options: [
-      { value: 'professional', label: 'Professioneller' },
-      { value: 'casual', label: 'Lockerer' },
-      { value: 'provocative', label: 'Autoritärer' },
-      { value: 'inspirational', label: 'Freundlicher' },
+      { value: 'Professioneller Ton', label: 'Professioneller' },
+      { value: 'Lockerer Ton', label: 'Lockerer' },
+      { value: 'Autoritärer Ton', label: 'Autoritärer' },
+      { value: 'Freundlicher Ton', label: 'Freundlicher' },
     ],
   },
   {
     label: 'Länge',
-    key: 'length',
     options: [
-      { value: 'short', label: 'Kürzer' },
-      { value: 'long', label: 'Länger' },
-      { value: 'medium', label: 'Mehr Details' },
+      { value: 'Kürzer schreiben', label: 'Kürzer' },
+      { value: 'Länger schreiben', label: 'Länger' },
+      { value: 'Mehr Details hinzufügen', label: 'Mehr Details' },
     ],
   },
   {
     label: 'Engagement',
-    key: 'engagement',
     options: [
-      { value: 'high', label: 'Stärkerer Hook' },
-      { value: 'medium', label: 'CTA hinzufügen' },
-      { value: 'low', label: 'Persönlicher / Story' },
+      { value: 'Stärkerer Hook', label: 'Stärkerer Hook' },
+      { value: 'CTA hinzufügen', label: 'CTA hinzufügen' },
+      { value: 'Persönlicher / Storytelling', label: 'Persönlicher / Story' },
     ],
   },
   {
     label: 'Format',
-    key: 'format',
-    multi: true,
     options: [
       { value: 'Add Bullet Points', label: 'Aufzählungen' },
       { value: 'Add Emojis', label: 'Emojis hinzufügen' },
@@ -40,7 +35,7 @@ const sections = [
   },
 ]
 
-function ChipGroup({ label, options, selected, onSelect, multi }) {
+function ChipGroup({ label, options, selected, onToggle }) {
   return (
     <div>
       <label className="block text-xs font-medium text-[#8A8578] uppercase tracking-wide mb-2">
@@ -48,15 +43,12 @@ function ChipGroup({ label, options, selected, onSelect, multi }) {
       </label>
       <div className="flex flex-wrap gap-2">
         {options.map((opt) => {
-          const isSelected = multi
-            ? selected.includes(opt.value)
-            : selected === opt.value
-
+          const isSelected = selected.includes(opt.value)
           return (
             <button
               key={opt.value}
               type="button"
-              onClick={() => onSelect(opt.value)}
+              onClick={() => onToggle(opt.value)}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
                 isSelected
                   ? 'bg-[#FEF3C7] border-[#D97706] text-[#92400E]'
@@ -73,16 +65,12 @@ function ChipGroup({ label, options, selected, onSelect, multi }) {
 }
 
 export default function QuickEdits({ settings, onSettingsChange, step, onRefine, isLoading }) {
-  const handleSelect = (key, value, multi) => {
-    if (multi) {
-      const current = settings.quickEdits || []
-      const updated = current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value]
-      onSettingsChange({ ...settings, quickEdits: updated })
-    } else {
-      onSettingsChange({ ...settings, [key]: value })
-    }
+  const handleToggle = (value) => {
+    const current = settings.quickEdits || []
+    const updated = current.includes(value)
+      ? current.filter((v) => v !== value)
+      : [...current, value]
+    onSettingsChange({ ...settings, quickEdits: updated })
   }
 
   const showRefineButton = step === 'result'
@@ -93,12 +81,11 @@ export default function QuickEdits({ settings, onSettingsChange, step, onRefine,
       <div className="space-y-5">
         {sections.map((section) => (
           <ChipGroup
-            key={section.key}
+            key={section.label}
             label={section.label}
             options={section.options}
-            selected={section.multi ? (settings.quickEdits || []) : settings[section.key]}
-            onSelect={(value) => handleSelect(section.key, value, section.multi)}
-            multi={section.multi}
+            selected={settings.quickEdits || []}
+            onToggle={handleToggle}
           />
         ))}
       </div>
