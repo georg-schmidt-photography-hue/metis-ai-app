@@ -165,7 +165,10 @@ function App() {
         signal: controller.signal,
       })
 
-      if (!response.ok) throw new Error(`Server error: ${response.status}`)
+      if (!response.ok) {
+        const text = await response.text().catch(() => '')
+        throw new Error(`HTTP ${response.status}: ${text.substring(0, 200)}`)
+      }
 
       const data = await response.json()
 
@@ -176,9 +179,11 @@ function App() {
       setCreatorReport(data.report)
     } catch (err) {
       if (err.name === 'AbortError') {
-        setAnalyzeError('Zeitüberschreitung — bitte versuche es erneut.')
+        setAnalyzeError('Zeitüberschreitung (3 Min) — bitte versuche es erneut.')
+      } else if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setAnalyzeError('Netzwerkfehler — CORS oder Verbindung unterbrochen.')
       } else {
-        setAnalyzeError(err.message || 'Analyse fehlgeschlagen. Bitte versuche es erneut.')
+        setAnalyzeError(err.message || 'Analyse fehlgeschlagen.')
       }
     } finally {
       clearTimeout(timeout)
