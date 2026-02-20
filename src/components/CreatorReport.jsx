@@ -53,50 +53,67 @@ export default function CreatorReport({ report, isLoading, error, username }) {
   return (
     <div className="space-y-5">
 
-      {/* Creator Header */}
+      {/* Creator Header — wie im PDF */}
       {creator && (
-        <div className="bg-white rounded-2xl border border-[#E8E4DD] p-5 flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#FEF3C7] flex items-center justify-center flex-shrink-0">
-            <span className="text-lg font-bold text-[#D97706]">
-              {creator.name?.charAt(0) || '?'}
-            </span>
+        <div className="bg-white rounded-2xl border border-[#E8E4DD] p-6">
+          <p className="text-[10px] font-semibold text-[#A39E93] uppercase tracking-widest mb-4">Content Strategy</p>
+          <div className="flex items-start gap-4">
+            {/* Avatar */}
+            <div className="w-16 h-16 rounded-full bg-[#E8E4DD] flex items-center justify-center flex-shrink-0 overflow-hidden">
+              {creator.avatarUrl ? (
+                <img src={creator.avatarUrl} alt={creator.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-2xl font-bold text-[#6B6560]">
+                  {creator.name?.charAt(0) || '?'}
+                </span>
+              )}
+            </div>
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <h2 className="text-2xl font-bold text-[#2D2B28] leading-tight">{creator.name}</h2>
+              {creator.headline && (
+                <p className="text-sm text-[#6B6560] mt-1 leading-relaxed">{creator.headline}</p>
+              )}
+              <div className="flex items-center gap-3 mt-2">
+                {creator.followers && (
+                  <span className="text-sm font-semibold text-[#2D2B28]">{creator.followers} Follower</span>
+                )}
+                {creator.profileUrl && (
+                  <a href={creator.profileUrl} target="_blank" rel="noopener noreferrer"
+                    className="text-sm text-[#D97706] hover:underline font-medium">
+                    Profil ansehen
+                  </a>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-base font-semibold text-[#2D2B28] truncate">{creator.name}</h2>
-            {creator.handle && <p className="text-xs text-[#A39E93]">{creator.handle}</p>}
-            {creator.headline && <p className="text-xs text-[#6B6560] mt-1 line-clamp-2">{creator.headline}</p>}
-          </div>
-          {creator.followers && (
-            <div className="text-right flex-shrink-0">
-              <p className="text-lg font-bold text-[#2D2B28]">{creator.followers}</p>
-              <p className="text-[10px] text-[#A39E93] uppercase tracking-wide">Follower</p>
+
+          {/* Stats — direkt im Header-Card */}
+          {stats && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 mt-6 pt-5 border-t border-[#F0EDE8] divide-x divide-[#F0EDE8]">
+              {[
+                { label: 'Posts / Woche', value: stats.postsPerWeek ?? '–', sub: null },
+                { label: 'Posting-Zeit', value: stats.mainPostingTime ?? '–', sub: null },
+                { label: 'Avg. Reactions', value: stats.avgReactions ? stats.avgReactions.toLocaleString() : '–', sub: null },
+                { label: 'CTA-Frequenz', value: stats.ctaFrequency ?? '–', sub: null },
+              ].map((s) => (
+                <div key={s.label} className="text-center px-4 first:pl-0 last:pr-0">
+                  <p className="text-3xl font-bold text-[#2D2B28] leading-none">{s.value}</p>
+                  <p className="text-[10px] text-[#A39E93] uppercase tracking-wider mt-2">{s.label}</p>
+                </div>
+              ))}
             </div>
           )}
         </div>
       )}
 
-      {/* Stats Bar */}
-      {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[
-            { label: 'Posts / Woche', value: stats.postsPerWeek ?? '–' },
-            { label: 'Posting-Zeit', value: stats.mainPostingTime ?? '–' },
-            { label: 'Avg. Reactions', value: stats.avgReactions ? stats.avgReactions.toLocaleString() : '–' },
-            { label: 'CTA-Frequenz', value: stats.ctaFrequency ?? '–' },
-          ].map((s) => (
-            <div key={s.label} className="bg-white rounded-xl border border-[#E8E4DD] p-4 text-center">
-              <p className="text-xl font-bold text-[#2D2B28]">{s.value}</p>
-              <p className="text-[10px] text-[#A39E93] uppercase tracking-wide mt-1">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* #1 Success Factor */}
+      {/* #1 Success Factor — mit blauem linken Rand wie im PDF */}
       {successFactor && (
-        <div className="bg-white rounded-2xl border border-[#E8E4DD] p-5">
-          <p className="text-[10px] font-semibold text-[#D97706] uppercase tracking-widest mb-2">#1 Erfolgsfaktor</p>
-          <p className="text-sm text-[#2D2B28] leading-relaxed">{successFactor}</p>
+        <div className="bg-white rounded-2xl border border-[#E8E4DD] p-6">
+          <p className="text-[10px] font-bold text-[#D97706] uppercase tracking-widest mb-3">#1 Erfolgsfaktor</p>
+          <div className="border-l-4 border-[#D97706] pl-4">
+            <p className="text-sm text-[#2D2B28] leading-relaxed">{successFactor}</p>
+          </div>
         </div>
       )}
 
