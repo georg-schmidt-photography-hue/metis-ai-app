@@ -229,7 +229,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                   type="text"
                   value={creatorInput}
                   onChange={(e) => setCreatorInput(e.target.value)}
-                  placeholder='LinkedIn-URL oder Name (z.B. "Clare Kitching" oder linkedin.com/in/...)'
+                  placeholder='Name des Creators (z.B. "Clare Kitching") oder Firmen-URL'
                   className="w-full pl-12 pr-4 py-2.5 border border-[#E8E4DD] rounded-xl text-sm text-[#2D2B28] placeholder-[#A39E93] bg-[#F7F5F0] focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent focus:bg-white transition-all"
                   disabled={isAnalyzing}
                 />
