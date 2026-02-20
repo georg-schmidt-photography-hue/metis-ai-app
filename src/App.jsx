@@ -4,9 +4,11 @@ import ContentOutput from './components/ContentOutput'
 import ArticleView from './components/ArticleView'
 import QuickEdits from './components/QuickEdits'
 import LandingPage from './components/LandingPage'
+import CreatorReport from './components/CreatorReport'
 
 function App() {
   const [showLanding, setShowLanding] = useState(true)
+  const [appMode, setAppMode] = useState('inspiration') // 'inspiration' | 'creator-report'
   const [step, setStep] = useState('idle') // idle | searching | posts | generating | refining
   const [topPosts, setTopPosts] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -14,6 +16,12 @@ function App() {
   const [searchMode, setSearchMode] = useState('topic') // 'topic' | 'account'
   const [accountFilter, setAccountFilter] = useState('top4weeks') // 'top4weeks' | 'last10days'
   const [error, setError] = useState(null)
+
+  // Creator Report state
+  const [creatorReport, setCreatorReport] = useState(null)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analyzeError, setAnalyzeError] = useState(null)
+  const [analyzedUsername, setAnalyzedUsername] = useState('')
 
   // Per-card generated content: { [index]: { content, sourcePost } }
   const [generatedPosts, setGeneratedPosts] = useState({})
@@ -139,6 +147,36 @@ function App() {
     }
   }
 
+  // Creator Report analysis
+  const handleCreatorAnalysis = async (username) => {
+    setIsAnalyzing(true)
+    setAnalyzeError(null)
+    setCreatorReport(null)
+    setAnalyzedUsername(username)
+
+    try {
+      const response = await fetch(import.meta.env.VITE_N8N_CREATOR_REPORT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username }),
+      })
+
+      if (!response.ok) throw new Error(`Server error: ${response.status}`)
+
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.error || 'Analyse fehlgeschlagen. Bitte versuche es erneut.')
+      }
+
+      setCreatorReport(data.report)
+    } catch (err) {
+      setAnalyzeError(err.message || 'Analyse fehlgeschlagen. Bitte versuche es erneut.')
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
   // Refresh: re-run same search, keep generated articles
   const handleRefresh = () => {
     if (searchTerm) handleSearch(searchTerm)
@@ -188,46 +226,59 @@ function App() {
         accountFilter={accountFilter}
         onAccountFilterChange={setAccountFilter}
         onBackToLanding={() => setShowLanding(true)}
+        appMode={appMode}
+        onAppModeChange={setAppMode}
+        onCreatorAnalysis={handleCreatorAnalysis}
+        isAnalyzing={isAnalyzing}
       />
 
       <main className="max-w-7xl mx-auto px-6 pt-28 pb-12">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-1 lg:w-2/3">
-            {isViewingArticle ? (
-              <ArticleView
-                content={generatedPosts[viewingPostId].content}
-                platform={platform}
-                onBack={handleBackToDashboard}
-                onContentChange={handleArticleContentChange}
-                isRefining={step === 'refining'}
-              />
-            ) : (
-              <ContentOutput
-                step={step}
-                topPosts={topPosts}
-                searchTerm={searchTerm}
-                platform={platform}
-                generatedPosts={generatedPosts}
-                generatingIndex={generatingIndex}
-                error={error}
-                onGenerateForPost={handleGenerateForPost}
-                onViewPost={handleViewPost}
-                onRefresh={handleRefresh}
-                onFetchFresh={handleFetchFresh}
-              />
-            )}
-          </div>
+        {appMode === 'creator-report' ? (
+          <CreatorReport
+            report={creatorReport}
+            isLoading={isAnalyzing}
+            error={analyzeError}
+            username={analyzedUsername}
+          />
+        ) : (
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 lg:w-2/3">
+              {isViewingArticle ? (
+                <ArticleView
+                  content={generatedPosts[viewingPostId].content}
+                  platform={platform}
+                  onBack={handleBackToDashboard}
+                  onContentChange={handleArticleContentChange}
+                  isRefining={step === 'refining'}
+                />
+              ) : (
+                <ContentOutput
+                  step={step}
+                  topPosts={topPosts}
+                  searchTerm={searchTerm}
+                  platform={platform}
+                  generatedPosts={generatedPosts}
+                  generatingIndex={generatingIndex}
+                  error={error}
+                  onGenerateForPost={handleGenerateForPost}
+                  onViewPost={handleViewPost}
+                  onRefresh={handleRefresh}
+                  onFetchFresh={handleFetchFresh}
+                />
+              )}
+            </div>
 
-          <div className="lg:w-80 flex-shrink-0">
-            <QuickEdits
-              settings={settings}
-              onSettingsChange={setSettings}
-              step={isViewingArticle ? 'result' : step}
-              onRefine={handleRefine}
-              isLoading={isLoading}
-            />
+            <div className="lg:w-80 flex-shrink-0">
+              <QuickEdits
+                settings={settings}
+                onSettingsChange={setSettings}
+                step={isViewingArticle ? 'result' : step}
+                onRefine={handleRefine}
+                isLoading={isLoading}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   )
