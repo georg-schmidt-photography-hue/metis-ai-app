@@ -45,7 +45,7 @@ function App() {
     try {
       const response = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify({ searchTerm: term, platform, searchMode, accountFilter }),
       })
 
@@ -76,7 +76,7 @@ function App() {
     try {
       const response = await fetch(import.meta.env.VITE_N8N_GENERATE_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify({
           post,
           posts: [post],
@@ -118,7 +118,7 @@ function App() {
     try {
       const response = await fetch(import.meta.env.VITE_N8N_GENERATE_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify({
           existingPost: generatedPosts[viewingPostId].content,
           searchTerm,
@@ -154,11 +154,15 @@ function App() {
     setCreatorReport(null)
     setAnalyzedUsername(username)
 
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 180000) // 3 Minuten
+
     try {
       const response = await fetch(import.meta.env.VITE_N8N_CREATOR_REPORT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify({ username }),
+        signal: controller.signal,
       })
 
       if (!response.ok) throw new Error(`Server error: ${response.status}`)
@@ -171,8 +175,13 @@ function App() {
 
       setCreatorReport(data.report)
     } catch (err) {
-      setAnalyzeError(err.message || 'Analyse fehlgeschlagen. Bitte versuche es erneut.')
+      if (err.name === 'AbortError') {
+        setAnalyzeError('Zeitüberschreitung — bitte versuche es erneut.')
+      } else {
+        setAnalyzeError(err.message || 'Analyse fehlgeschlagen. Bitte versuche es erneut.')
+      }
     } finally {
+      clearTimeout(timeout)
       setIsAnalyzing(false)
     }
   }
