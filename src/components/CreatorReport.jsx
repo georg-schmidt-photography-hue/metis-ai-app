@@ -35,7 +35,7 @@ export default function CreatorReport({ report, isLoading, error, username }) {
           <p className="text-sm text-[#A39E93] mt-1">Gib einen LinkedIn-Usernamen ein und erhalte einen vollständigen Strategy-Report</p>
         </div>
         <div className="mt-2 grid grid-cols-2 gap-3 max-w-sm text-left">
-          {['#1 Success Factor', 'Format Breakdown', 'Content Pillars', '7 Tactics to Steal'].map((item) => (
+          {['#1 Erfolgsfaktor', 'Format-Auswertung', 'Inhalts-Säulen', 'Taktiken zum Stehlen'].map((item) => (
             <div key={item} className="flex items-center gap-2 text-xs text-[#6B6560]">
               <div className="w-1.5 h-1.5 rounded-full bg-[#D97706] flex-shrink-0" />
               {item}
@@ -69,7 +69,7 @@ export default function CreatorReport({ report, isLoading, error, username }) {
           {creator.followers && (
             <div className="text-right flex-shrink-0">
               <p className="text-lg font-bold text-[#2D2B28]">{creator.followers}</p>
-              <p className="text-[10px] text-[#A39E93] uppercase tracking-wide">Followers</p>
+              <p className="text-[10px] text-[#A39E93] uppercase tracking-wide">Follower</p>
             </div>
           )}
         </div>
@@ -95,7 +95,7 @@ export default function CreatorReport({ report, isLoading, error, username }) {
       {/* #1 Success Factor */}
       {successFactor && (
         <div className="bg-white rounded-2xl border border-[#E8E4DD] p-5">
-          <p className="text-[10px] font-semibold text-[#D97706] uppercase tracking-widest mb-2">#1 Success Factor</p>
+          <p className="text-[10px] font-semibold text-[#D97706] uppercase tracking-widest mb-2">#1 Erfolgsfaktor</p>
           <p className="text-sm text-[#2D2B28] leading-relaxed">{successFactor}</p>
         </div>
       )}
@@ -106,7 +106,7 @@ export default function CreatorReport({ report, isLoading, error, username }) {
         {/* Format Breakdown */}
         {formatBreakdown && formatBreakdown.length > 0 && (
           <div className="bg-white rounded-2xl border border-[#E8E4DD] p-5">
-            <p className="text-xs font-semibold text-[#6B6560] uppercase tracking-wider mb-4">Format Breakdown</p>
+            <p className="text-xs font-semibold text-[#6B6560] uppercase tracking-wider mb-4">Format-Auswertung</p>
             <div className="space-y-3">
               {formatBreakdown.map((f) => (
                 <div key={f.format}>
@@ -132,7 +132,7 @@ export default function CreatorReport({ report, isLoading, error, username }) {
         {/* Content Pillars */}
         {contentPillars && contentPillars.length > 0 && (
           <div className="bg-white rounded-2xl border border-[#E8E4DD] p-5">
-            <p className="text-xs font-semibold text-[#6B6560] uppercase tracking-wider mb-4">Content Pillars</p>
+            <p className="text-xs font-semibold text-[#6B6560] uppercase tracking-wider mb-4">Inhalts-Säulen</p>
             <div className="space-y-3">
               {contentPillars.map((p) => (
                 <div key={p.pillar}>
@@ -160,7 +160,7 @@ export default function CreatorReport({ report, isLoading, error, username }) {
       {tactics && tactics.length > 0 && (
         <div className="bg-white rounded-2xl border border-[#E8E4DD] p-5">
           <p className="text-xs font-semibold text-[#6B6560] uppercase tracking-wider mb-4">
-            {tactics.length} Tactics You Can Steal
+            {tactics.length} Taktiken zum Stehlen
           </p>
           <div className="space-y-4">
             {tactics.map((t, i) => (
@@ -183,10 +183,10 @@ export default function CreatorReport({ report, isLoading, error, username }) {
         </div>
       )}
 
-      {/* Top Posts */}
+      {/* Top Beiträge */}
       {topPosts && topPosts.length > 0 && (
         <div className="bg-white rounded-2xl border border-[#E8E4DD] p-5">
-          <p className="text-xs font-semibold text-[#6B6560] uppercase tracking-wider mb-4">Top Posts</p>
+          <p className="text-xs font-semibold text-[#6B6560] uppercase tracking-wider mb-4">Top Beiträge</p>
           <div className="space-y-3">
             {topPosts.map((post, i) => (
               <div key={i} className="flex gap-4 py-3 border-b border-[#F0EDE8] last:border-0">

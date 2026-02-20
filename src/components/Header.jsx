@@ -76,11 +76,12 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
               onClick={() => onAppModeChange('creator-report')}
               className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                 appMode === 'creator-report'
+
                   ? 'bg-white text-[#2D2B28] shadow-sm'
                   : 'text-[#6B6560] hover:text-[#2D2B28]'
               }`}
             >
-              Creator Report
+              Creator-Analyse
             </button>
           </div>
 
