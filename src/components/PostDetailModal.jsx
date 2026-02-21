@@ -207,14 +207,17 @@ export default function PostDetailModal({ post, index, platform, onClose }) {
 
           {/* View original link */}
           {post.url && (
-            <div className="border-t border-[#E8E4DD] pt-4 flex justify-end">
+            <div className="border-t border-[#E8E4DD] pt-4">
               <a
                 href={post.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-[#D97706] hover:text-[#B45309] font-medium transition-colors"
+                className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg border border-[#D97706] text-[#D97706] hover:bg-[#FEF3C7] text-xs font-semibold transition-colors"
               >
-                Auf {platformLabels[platform] || 'LinkedIn'} ansehen →
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+                Original auf {platformLabels[platform] || 'LinkedIn'} ansehen (inkl. Bilder &amp; Medien)
               </a>
             </div>
           )}
