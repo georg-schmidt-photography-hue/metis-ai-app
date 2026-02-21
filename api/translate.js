@@ -6,7 +6,7 @@ export default async function handler(req, res) {
 
   const prompt = texts
     .slice(0, 10)
-    .map((t, i) => `[${i}]\n${t.substring(0, 600)}`)
+    .map((t, i) => `[${i}]\n${t.substring(0, 3000)}`)
     .join('\n\n---\n\n')
 
   try {
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'gpt-4.1-mini',
-        max_tokens: 4000,
+        max_tokens: 16000,
         messages: [
           {
             role: 'system',
