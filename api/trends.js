@@ -3,27 +3,13 @@ import googleTrends from 'google-trends-api'
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
 
-  const { keyword, geo = 'DE' } = req.body
+  const { keyword, compareWith, geo = 'DE' } = req.body
   if (!keyword) return res.status(400).json({ error: 'keyword erforderlich' })
 
   try {
-    // Fetch daily trending searches in Germany to get comparison topic
-    let trendingNow = null
-    try {
-      const daily = await googleTrends.dailyTrends({ geo }).then(r => JSON.parse(r))
-      const top = daily?.default?.trendingSearchesDays?.[0]?.trendingSearches?.[0]
-      if (top) {
-        trendingNow = {
-          title: top.title?.query || '',
-          traffic: top.formattedTraffic || '',
-          articles: top.articles?.length || 0,
-        }
-      }
-    } catch (_) {}
-
-    // Compare keyword vs. trending topic over time
-    const comparisonKeywords = trendingNow?.title && trendingNow.title !== keyword
-      ? [keyword, trendingNow.title]
+    // Build keyword array for comparison
+    const comparisonKeywords = compareWith && compareWith !== keyword
+      ? [keyword, compareWith]
       : [keyword]
 
     const [interestOverTime, relatedTopics, relatedQueries] = await Promise.all([
@@ -83,7 +69,6 @@ export default async function handler(req, res) {
     res.json({
       keyword,
       compareKeyword: comparisonKeywords[1] || null,
-      trendingNow,
       geo,
       currentScore,
       peakScore,

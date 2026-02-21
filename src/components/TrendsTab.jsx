@@ -8,6 +8,7 @@ const SUGGESTED_TOPICS = [
 
 export default function TrendsTab({ savedCreators, onCreatePost }) {
   const [keyword, setKeyword] = useState('')
+  const [compareKeyword, setCompareKeyword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [trendData, setTrendData] = useState(null)
   const [error, setError] = useState(null)
@@ -25,7 +26,7 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
       const res = await fetch('/api/trends', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keyword: term.trim(), geo: 'DE' }),
+        body: JSON.stringify({ keyword: term.trim(), compareWith: compareKeyword.trim() || null, geo: 'DE' }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Fehler beim Laden')
@@ -54,15 +55,33 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
       <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-2xl p-5">
         <p className="text-[10px] font-semibold text-[#A39E93] uppercase tracking-widest mb-3">Google Trends — Deutschland</p>
         <div className="flex gap-2">
-          <input
-            type="text"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSearch()}
-            placeholder='Begriff eingeben, z.B. "Photovoltaik" oder "Bauer Module"'
-            className="flex-1 px-4 py-2.5 border border-[#E8E4DD] rounded-xl text-sm text-[#2D2B28] placeholder-[#A39E93] bg-[#F7F5F0] focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent focus:bg-white transition-all"
-            disabled={isLoading}
-          />
+          <div className="flex-1 flex gap-2">
+            <div className="flex-1 relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-sm bg-[#D97706]" />
+              <input
+                type="text"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSearch()}
+                placeholder='Thema, z.B. "Photovoltaik"'
+                className="w-full pl-8 pr-3 py-2.5 border border-[#E8E4DD] rounded-xl text-sm text-[#2D2B28] placeholder-[#A39E93] bg-[#F7F5F0] focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent focus:bg-white transition-all"
+                disabled={isLoading}
+              />
+            </div>
+            <div className="flex items-center text-xs text-[#A39E93] flex-shrink-0">vs.</div>
+            <div className="flex-1 relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-sm bg-[#94A3B8]" />
+              <input
+                type="text"
+                value={compareKeyword}
+                onChange={(e) => setCompareKeyword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSearch()}
+                placeholder='Vergleich (optional)'
+                className="w-full pl-8 pr-3 py-2.5 border border-[#E8E4DD] rounded-xl text-sm text-[#2D2B28] placeholder-[#A39E93] bg-[#F7F5F0] focus:outline-none focus:ring-2 focus:ring-[#94A3B8] focus:border-transparent focus:bg-white transition-all"
+                disabled={isLoading}
+              />
+            </div>
+          </div>
           <button
             onClick={() => handleSearch()}
             disabled={isLoading || !keyword.trim()}
@@ -73,7 +92,7 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Lädt…
               </span>
-            ) : 'Trends laden'}
+            ) : 'Vergleichen'}
           </button>
         </div>
 
@@ -137,16 +156,6 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                   )}
                 </div>
               </div>
-
-              {/* Trending Now banner */}
-              {trendData.trendingNow && (
-                <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-[#F7F5F0] rounded-xl text-xs">
-                  <span className="text-[#D97706]">🔥</span>
-                  <span className="text-[#6B6560]">Aktuell meiststgesucht in Deutschland:</span>
-                  <span className="font-semibold text-[#2D2B28]">{trendData.trendingNow.title}</span>
-                  <span className="text-[#A39E93]">{trendData.trendingNow.traffic} Suchanfragen</span>
-                </div>
-              )}
 
               {/* Chart */}
               <div className="relative h-40">
