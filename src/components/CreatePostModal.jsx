@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
-export default function CreatePostModal({ creator, onClose }) {
-  const [topic, setTopic] = useState('')
+export default function CreatePostModal({ creator, onClose, prefillTopic, trendContext }) {
+  const [topic, setTopic] = useState(prefillTopic || '')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPost, setGeneratedPost] = useState('')
   const [copied, setCopied] = useState(false)
@@ -17,7 +17,7 @@ export default function CreatePostModal({ creator, onClose }) {
       const res = await fetch('/api/create-post', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: topic.trim(), creator }),
+        body: JSON.stringify({ topic: topic.trim(), creator, trendContext }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Fehler beim Generieren')
@@ -68,6 +68,16 @@ export default function CreatePostModal({ creator, onClose }) {
         </div>
 
         <div className="px-6 py-5 space-y-5">
+          {/* Trend context badge */}
+          {trendContext && (
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border ${
+              trendContext.trend === 'rising' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-[#F7F5F0] text-[#6B6560] border-[#E8E4DD]'
+            }`}>
+              {trendContext.trend === 'rising' ? '📈' : '➡️'}
+              Google Trends Score: {trendContext.currentScore}/100 · Perplexity recherchiert aktuelle Infos
+            </div>
+          )}
+
           {/* Creator Style Preview */}
           <div className="bg-[#F7F5F0] rounded-xl p-4 space-y-2">
             <p className="text-[10px] text-[#A39E93] uppercase tracking-wider font-semibold">Gewählter Creator-Stil</p>

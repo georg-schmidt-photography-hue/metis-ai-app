@@ -7,13 +7,16 @@ import LandingPage from './components/LandingPage'
 import CreatorReport from './components/CreatorReport'
 import SavedCreators from './components/SavedCreators'
 import CreatePostModal from './components/CreatePostModal'
+import TrendsTab from './components/TrendsTab'
 import { useCreatorStorage } from './hooks/useCreatorStorage'
 
 function App() {
   const [showLanding, setShowLanding] = useState(true)
-  const [appMode, setAppMode] = useState('inspiration') // 'inspiration' | 'creator-report' | 'saved-creators'
+  const [appMode, setAppMode] = useState('inspiration') // 'inspiration' | 'creator-report' | 'saved-creators' | 'trends'
   const { savedCreators, saveCreator, deleteCreator, isCreatorSaved } = useCreatorStorage()
   const [postModalCreator, setPostModalCreator] = useState(null)
+  const [postModalPrefill, setPostModalPrefill] = useState(null)
+  const [postModalTrendContext, setPostModalTrendContext] = useState(null)
   const [step, setStep] = useState('idle') // idle | searching | posts | generating | refining
   const [topPosts, setTopPosts] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -283,7 +286,16 @@ function App() {
       />
 
       <main className="max-w-7xl mx-auto px-6 pt-28 pb-12">
-        {appMode === 'saved-creators' ? (
+        {appMode === 'trends' ? (
+          <TrendsTab
+            savedCreators={savedCreators}
+            onCreatePost={({ topic, creator, trendContext }) => {
+              setPostModalCreator(creator)
+              setPostModalPrefill(topic)
+              setPostModalTrendContext(trendContext)
+            }}
+          />
+        ) : appMode === 'saved-creators' ? (
           <SavedCreators
             creators={savedCreators}
             onDelete={deleteCreator}
@@ -346,7 +358,9 @@ function App() {
       {postModalCreator && (
         <CreatePostModal
           creator={postModalCreator}
-          onClose={() => setPostModalCreator(null)}
+          prefillTopic={postModalPrefill}
+          trendContext={postModalTrendContext}
+          onClose={() => { setPostModalCreator(null); setPostModalPrefill(null); setPostModalTrendContext(null) }}
         />
       )}
     </div>

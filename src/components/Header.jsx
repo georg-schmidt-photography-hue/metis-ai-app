@@ -64,6 +64,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
               { value: 'inspiration', label: 'Inspiration' },
               { value: 'creator-report', label: 'Creator-Analyse' },
               { value: 'saved-creators', label: 'Meine Creators' },
+              { value: 'trends', label: 'Trends' },
             ].map((tab) => (
               <button
                 key={tab.value}
@@ -104,7 +105,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
         </div>
 
         {/* Bottom row */}
-        {appMode === 'saved-creators' ? null : appMode === 'inspiration' ? (
+        {appMode === 'saved-creators' || appMode === 'trends' ? null : appMode === 'inspiration' ? (
           /* Inspiration: Search mode toggle + Search bar */
           <div className="pb-3 flex items-center gap-3 max-w-2xl">
             <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden flex-shrink-0">
