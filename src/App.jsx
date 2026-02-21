@@ -34,7 +34,7 @@ function App() {
   })
 
   // Step 1: Search for top posts
-  const handleSearch = async (term) => {
+  const handleSearch = async (term, forceTranslate = null) => {
     setStep('searching')
     setError(null)
     setSearchTerm(term)
@@ -50,7 +50,7 @@ function App() {
       const response = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-        body: JSON.stringify({ searchTerm: term, platform, searchMode, accountFilter, translate: translateDE }),
+        body: JSON.stringify({ searchTerm: term, platform, searchMode, accountFilter, translate: forceTranslate !== null ? forceTranslate : translateDE }),
         signal: controller.signal,
       })
       clearTimeout(timeout)
@@ -282,7 +282,7 @@ function App() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setTranslateDE(true); if (!topPosts[0]?.textDe) handleSearch(searchTerm) }}
+                      onClick={() => { setTranslateDE(true); if (!topPosts[0]?.textDe) handleSearch(searchTerm, true) }}
                       className={`px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${translateDE ? 'bg-[#2D2B28] text-white' : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'}`}
                     >
                       Deutsch
