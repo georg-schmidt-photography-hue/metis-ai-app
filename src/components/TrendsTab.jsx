@@ -119,30 +119,90 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
           {/* Interest over time chart */}
           {trendData.timelineData.length > 0 && (
             <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-2xl p-5">
-              <p className="text-xs font-semibold text-[#6B6560] uppercase tracking-wider mb-4">
-                Interesse über Zeit — {trendData.keyword}
-              </p>
-              <div className="flex items-end gap-px h-24">
-                {trendData.timelineData.map((d, i) => {
-                  const pct = Math.round((d.value / maxVal) * 100)
-                  return (
-                    <div key={i} className="flex-1 flex flex-col items-center group relative">
-                      <div
-                        className={`w-full rounded-t-sm ${d.value > 0 ? 'bg-[#D97706]' : 'bg-[#F0EDE8]'}`}
-                        style={{ height: `${Math.max(pct, d.value > 0 ? 4 : 2)}%` }}
-                      />
-                      {d.value > 0 && (
-                        <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-[#2D2B28] text-white text-[9px] px-1.5 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-10">
-                          {d.date}: {d.value}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-xs font-semibold text-[#6B6560] uppercase tracking-wider">Interesse über Zeit — 12 Monate</p>
+                  <p className="text-[10px] text-[#A39E93] mt-1">Vergleich: dein Thema vs. aktuell meiststgesuchtes Thema in Deutschland</p>
+                </div>
+                <div className="flex items-center gap-3 text-[10px] flex-shrink-0 ml-4">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-sm bg-[#D97706] inline-block" />
+                    {trendData.keyword}
+                  </span>
+                  {trendData.compareKeyword && (
+                    <span className="flex items-center gap-1.5 text-[#A39E93]">
+                      <span className="w-3 h-3 rounded-sm bg-[#94A3B8] inline-block" />
+                      {trendData.compareKeyword}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-[9px] text-[#C4BFB6]">{trendData.timelineData[0]?.date}</span>
-                <span className="text-[9px] text-[#C4BFB6]">{trendData.timelineData[trendData.timelineData.length - 1]?.date}</span>
+
+              {/* Trending Now banner */}
+              {trendData.trendingNow && (
+                <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-[#F7F5F0] rounded-xl text-xs">
+                  <span className="text-[#D97706]">🔥</span>
+                  <span className="text-[#6B6560]">Aktuell meiststgesucht in Deutschland:</span>
+                  <span className="font-semibold text-[#2D2B28]">{trendData.trendingNow.title}</span>
+                  <span className="text-[#A39E93]">{trendData.trendingNow.traffic} Suchanfragen</span>
+                </div>
+              )}
+
+              {/* Chart */}
+              <div className="relative h-40">
+                {/* Y-axis labels */}
+                <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between">
+                  {[100, 75, 50, 25, 0].map(v => (
+                    <span key={v} className="text-[9px] text-[#C4BFB6] w-6 text-right">{v}</span>
+                  ))}
+                </div>
+                {/* Bars area */}
+                <div className="ml-8 h-full flex flex-col">
+                  <div className="flex-1 flex items-end gap-px relative">
+                    {/* Grid lines */}
+                    {[25, 50, 75].map(v => (
+                      <div
+                        key={v}
+                        className="absolute left-0 right-0 border-t border-[#F0EDE8]"
+                        style={{ bottom: `${v}%` }}
+                      />
+                    ))}
+                    {trendData.timelineData.map((d, i) => {
+                      const pct = Math.round((d.value / 100) * 100)
+                      const cmpPct = d.compareValue != null ? Math.round((d.compareValue / 100) * 100) : null
+                      return (
+                        <div key={i} className="flex-1 flex items-end gap-px group relative">
+                          {/* Comparison bar (behind) */}
+                          {cmpPct != null && (
+                            <div
+                              className="absolute inset-x-0 bottom-0 bg-[#CBD5E1] rounded-t-sm opacity-60"
+                              style={{ height: `${Math.max(cmpPct, cmpPct > 0 ? 2 : 0)}%` }}
+                            />
+                          )}
+                          {/* Main bar */}
+                          <div
+                            className={`relative z-10 w-full rounded-t-sm transition-all ${d.value > 0 ? 'bg-[#D97706]' : 'bg-[#F0EDE8]'}`}
+                            style={{ height: `${Math.max(pct, d.value > 0 ? 2 : 1)}%` }}
+                          />
+                          {/* Tooltip */}
+                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-[#2D2B28] text-white text-[9px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-20 leading-relaxed">
+                            <div className="font-semibold">{d.date}</div>
+                            <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-[#D97706] inline-block" /> {trendData.keyword}: {d.value}</div>
+                            {cmpPct != null && <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-[#CBD5E1] inline-block" /> {trendData.compareKeyword}: {d.compareValue}</div>}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  {/* X-axis */}
+                  <div className="flex justify-between mt-1 h-5">
+                    {[0, Math.floor(trendData.timelineData.length / 4), Math.floor(trendData.timelineData.length / 2), Math.floor(trendData.timelineData.length * 3 / 4), trendData.timelineData.length - 1].map(idx => (
+                      <span key={idx} className="text-[9px] text-[#C4BFB6] truncate max-w-16">
+                        {trendData.timelineData[idx]?.date?.split(' ')[0]}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}

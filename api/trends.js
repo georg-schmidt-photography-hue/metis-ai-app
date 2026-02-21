@@ -7,9 +7,28 @@ export default async function handler(req, res) {
   if (!keyword) return res.status(400).json({ error: 'keyword erforderlich' })
 
   try {
+    // Fetch daily trending searches in Germany to get comparison topic
+    let trendingNow = null
+    try {
+      const daily = await googleTrends.dailyTrends({ geo }).then(r => JSON.parse(r))
+      const top = daily?.default?.trendingSearchesDays?.[0]?.trendingSearches?.[0]
+      if (top) {
+        trendingNow = {
+          title: top.title?.query || '',
+          traffic: top.formattedTraffic || '',
+          articles: top.articles?.length || 0,
+        }
+      }
+    } catch (_) {}
+
+    // Compare keyword vs. trending topic over time
+    const comparisonKeywords = trendingNow?.title && trendingNow.title !== keyword
+      ? [keyword, trendingNow.title]
+      : [keyword]
+
     const [interestOverTime, relatedTopics, relatedQueries] = await Promise.all([
       googleTrends.interestOverTime({
-        keyword,
+        keyword: comparisonKeywords,
         geo,
         startTime: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
       }).then(r => JSON.parse(r)),
@@ -25,10 +44,11 @@ export default async function handler(req, res) {
       }).then(r => JSON.parse(r)),
     ])
 
-    // Parse interest over time
+    // Parse interest over time — supports 1 or 2 keywords
     const timelineData = interestOverTime?.default?.timelineData?.map(d => ({
       date: d.formattedTime,
       value: d.value?.[0] || 0,
+      compareValue: d.value?.[1] ?? null,
     })) || []
 
     // Rising topics
@@ -62,6 +82,8 @@ export default async function handler(req, res) {
 
     res.json({
       keyword,
+      compareKeyword: comparisonKeywords[1] || null,
+      trendingNow,
       geo,
       currentScore,
       peakScore,
