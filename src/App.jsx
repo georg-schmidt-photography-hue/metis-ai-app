@@ -255,6 +255,8 @@ function App() {
         onAppModeChange={setAppMode}
         onCreatorAnalysis={handleCreatorAnalysis}
         isAnalyzing={isAnalyzing}
+        translateDE={translateDE}
+        onTranslateChange={setTranslateDE}
       />
 
       <main className="max-w-7xl mx-auto px-6 pt-28 pb-12">
@@ -268,31 +270,6 @@ function App() {
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 lg:w-2/3">
-              {/* DE/EN Toggle — nur wenn Posts vorhanden */}
-              {topPosts.length > 0 && !isViewingArticle && (
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs text-[#A39E93]">Sprache:</span>
-                  <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setTranslateDE(false)}
-                      className={`px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${!translateDE ? 'bg-[#2D2B28] text-white' : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'}`}
-                    >
-                      Original
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setTranslateDE(true); if (!topPosts[0]?.textDe) handleSearch(searchTerm, true) }}
-                      className={`px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${translateDE ? 'bg-[#2D2B28] text-white' : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'}`}
-                    >
-                      Deutsch
-                    </button>
-                  </div>
-                  {translateDE && !topPosts[0]?.textDe && (
-                    <span className="text-xs text-[#A39E93] italic">Wird übersetzt…</span>
-                  )}
-                </div>
-              )}
               {isViewingArticle ? (
                 <ArticleView
                   content={generatedPosts[viewingPostId].content}

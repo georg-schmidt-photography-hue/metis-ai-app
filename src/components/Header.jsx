@@ -18,7 +18,7 @@ const platforms = [
   )},
 ]
 
-export default function Header({ onSearch, isLoading, platform, onPlatformChange, onBackToLanding, searchMode, onSearchModeChange, accountFilter, onAccountFilterChange, appMode, onAppModeChange, onCreatorAnalysis, isAnalyzing }) {
+export default function Header({ onSearch, isLoading, platform, onPlatformChange, onBackToLanding, searchMode, onSearchModeChange, accountFilter, onAccountFilterChange, appMode, onAppModeChange, onCreatorAnalysis, isAnalyzing, translateDE, onTranslateChange }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [creatorInput, setCreatorInput] = useState('')
 
@@ -209,6 +209,30 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                 }`}
               >
                 Letzte 10 Tage
+              </button>
+            </div>
+
+            {/* DE/EN Toggle */}
+            <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden flex-shrink-0">
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => onTranslateChange(false)}
+                className={`px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer ${
+                  !translateDE ? 'bg-[#2D2B28] text-white' : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'
+                }`}
+              >
+                Original
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => onTranslateChange(true)}
+                className={`px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer ${
+                  translateDE ? 'bg-[#2D2B28] text-white' : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'
+                }`}
+              >
+                Deutsch
               </button>
             </div>
           </div>
