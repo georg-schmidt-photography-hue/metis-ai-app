@@ -63,7 +63,25 @@ function App() {
         throw new Error('Keine Beiträge gefunden. Versuche einen anderen Suchbegriff.')
       }
 
-      setTopPosts(data.posts)
+      let posts = data.posts
+
+      // Übersetzen via Vercel API wenn aktiviert
+      const shouldTranslate = forceTranslate !== null ? forceTranslate : translateDE
+      if (shouldTranslate && posts.length > 0) {
+        try {
+          const tr = await fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ texts: posts.map(p => p.text || '') }),
+          })
+          const trData = await tr.json()
+          if (trData.translations?.length) {
+            posts = posts.map((p, i) => ({ ...p, textDe: trData.translations[i] || p.text }))
+          }
+        } catch (_) {}
+      }
+
+      setTopPosts(posts)
       setStep('posts')
     } catch (err) {
       clearTimeout(timeout)
