@@ -53,25 +53,42 @@ export default function PostDetailModal({ post, index, platform, onClose }) {
 
         <div className="px-6 py-5 space-y-5">
           {/* Engagement stats */}
-          <div className="flex items-center gap-5 text-xs text-[#8A8578]">
+          <div className="flex items-center gap-5 text-xs text-[#8A8578] flex-wrap">
+            {platform === 'youtube' && post.viewCount != null && (
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                </svg>
+                {Number(post.viewCount).toLocaleString('de-DE')} Views
+              </span>
+            )}
             <span className="flex items-center gap-1.5">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
               </svg>
-              {post.numLikes || 0} Gefällt mir
+              {post.numLikes || 0} {platform === 'twitter' ? 'Likes' : 'Gefällt mir'}
             </span>
             <span className="flex items-center gap-1.5">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
               </svg>
-              {post.numComments || 0} Kommentare
+              {post.numComments || 0} {platform === 'twitter' ? 'Replies' : 'Kommentare'}
             </span>
             <span className="flex items-center gap-1.5">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
               </svg>
-              {post.numShares || 0} Geteilt
+              {post.numShares || 0} {platform === 'twitter' ? 'Retweets' : 'Geteilt'}
             </span>
+            {platform === 'youtube' && post.duration && (
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                </svg>
+                {post.duration}
+              </span>
+            )}
           </div>
 
           {/* Full post text */}

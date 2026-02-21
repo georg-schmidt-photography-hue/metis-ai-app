@@ -52,6 +52,22 @@ export default function PostCard({ post, index, platform, hasGeneratedContent, i
       )}
       {!description && <div className="flex-1" />}
 
+      {/* Platform-specific stats */}
+      {actualSource === 'youtube' && post.viewCount != null && (
+        <div className="flex items-center gap-3 text-[11px] text-[#8A8578] mb-3">
+          <span>{Number(post.viewCount).toLocaleString('de-DE')} Views</span>
+          <span>{post.numLikes || 0} Likes</span>
+          {post.duration && <span>{post.duration}</span>}
+        </div>
+      )}
+      {actualSource === 'twitter' && (
+        <div className="flex items-center gap-3 text-[11px] text-[#8A8578] mb-3">
+          <span>{post.numLikes || 0} Likes</span>
+          <span>{post.numShares || 0} Retweets</span>
+          <span>{post.numComments || 0} Replies</span>
+        </div>
+      )}
+
       {/* Footer: Details + Action button */}
       <div className="border-t border-[#E8E4DD] pt-3 mt-auto">
         <div className="flex items-center gap-3 mb-2">

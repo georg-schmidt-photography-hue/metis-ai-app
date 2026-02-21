@@ -92,13 +92,13 @@ export default function CreatorReport({ report, isLoading, error, username }) {
           {stats && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 mt-6 pt-5 border-t border-[#F0EDE8] divide-x divide-[#F0EDE8]">
               {[
-                { label: 'Posts / Woche', value: stats.postsPerWeek ?? '–', sub: null },
-                { label: 'Posting-Zeit', value: stats.mainPostingTime ?? '–', sub: null },
-                { label: 'Avg. Reactions', value: stats.avgReactions ? stats.avgReactions.toLocaleString() : '–', sub: null },
-                { label: 'CTA-Frequenz', value: stats.ctaFrequency ?? '–', sub: null },
+                { label: 'Posts / Woche', value: stats.postsPerWeek ?? '–' },
+                { label: 'Beste Uhrzeit', value: stats.postingTime ? stats.postingTime.replace(' UTC','') : (stats.mainPostingTime ?? '–') },
+                { label: 'Avg. Reactions', value: stats.avgReactions ? stats.avgReactions.toLocaleString() : '–' },
+                { label: 'CTA-Frequenz', value: stats.ctaFrequency ?? '–' },
               ].map((s) => (
                 <div key={s.label} className="text-center px-4 first:pl-0 last:pr-0">
-                  <p className="text-3xl font-bold text-[#2D2B28] leading-none">{s.value}</p>
+                  <p className="text-2xl font-bold text-[#2D2B28] leading-none">{s.value}</p>
                   <p className="text-[10px] text-[#A39E93] uppercase tracking-wider mt-2">{s.label}</p>
                 </div>
               ))}
@@ -197,6 +197,67 @@ export default function CreatorReport({ report, isLoading, error, username }) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Posting-Zeit Chart */}
+      {stats?.hourDistribution?.some(h => h.count > 0) && (
+        <div className="bg-white rounded-2xl border border-[#E8E4DD] p-5">
+          <p className="text-xs font-semibold text-[#6B6560] uppercase tracking-wider mb-1">Posting-Zeiten</p>
+          {stats.postingDay && (
+            <p className="text-xs text-[#A39E93] mb-4">
+              Häufigster Tag: <span className="font-semibold text-[#2D2B28]">{stats.postingDay}</span>
+              {stats.postingTime && <> · Häufigste Uhrzeit: <span className="font-semibold text-[#2D2B28]">{stats.postingTime.replace(' UTC', ' Uhr (UTC)')}</span></>}
+            </p>
+          )}
+          {/* Stunden-Balkendiagramm */}
+          <div className="flex items-end gap-px h-16">
+            {stats.hourDistribution.map(({ hour, count }) => {
+              const max = Math.max(...stats.hourDistribution.map(h => h.count), 1)
+              const pct = Math.round((count / max) * 100)
+              return (
+                <div key={hour} className="flex-1 flex flex-col items-center gap-0.5 group relative">
+                  <div
+                    className={`w-full rounded-t-sm transition-all ${count > 0 ? 'bg-[#D97706]' : 'bg-[#F0EDE8]'}`}
+                    style={{ height: `${Math.max(pct, count > 0 ? 8 : 2)}%` }}
+                  />
+                  {/* Tooltip */}
+                  {count > 0 && (
+                    <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-[#2D2B28] text-white text-[9px] px-1.5 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-10">
+                      {String(hour).padStart(2,'0')}:00 · {count}×
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          {/* X-Achse: alle 6 Stunden */}
+          <div className="flex justify-between mt-1 px-0">
+            {[0,6,12,18,23].map(h => (
+              <span key={h} className="text-[9px] text-[#C4BFB6]">{String(h).padStart(2,'0')}h</span>
+            ))}
+          </div>
+          {/* Wochentag-Balken */}
+          {stats.weekdayDistribution?.some(d => d.count > 0) && (
+            <div className="mt-5">
+              <p className="text-[10px] text-[#A39E93] uppercase tracking-wider mb-3">Wochentage</p>
+              <div className="space-y-1.5">
+                {stats.weekdayDistribution.map(({ day, count }) => {
+                  const max = Math.max(...stats.weekdayDistribution.map(d => d.count), 1)
+                  const pct = Math.round((count / max) * 100)
+                  return (
+                    <div key={day} className="flex items-center gap-2">
+                      <span className="text-[10px] text-[#6B6560] w-16 flex-shrink-0">{day.slice(0,2)}</span>
+                      <div className="flex-1 h-2 bg-[#F0EDE8] rounded-full overflow-hidden">
+                        <div className="h-full bg-[#D97706] rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="text-[10px] text-[#A39E93] w-4 text-right">{count}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
