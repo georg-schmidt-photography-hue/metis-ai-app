@@ -6,12 +6,14 @@ import QuickEdits from './components/QuickEdits'
 import LandingPage from './components/LandingPage'
 import CreatorReport from './components/CreatorReport'
 import SavedCreators from './components/SavedCreators'
+import CreatePostModal from './components/CreatePostModal'
 import { useCreatorStorage } from './hooks/useCreatorStorage'
 
 function App() {
   const [showLanding, setShowLanding] = useState(true)
   const [appMode, setAppMode] = useState('inspiration') // 'inspiration' | 'creator-report' | 'saved-creators'
   const { savedCreators, saveCreator, deleteCreator, isCreatorSaved } = useCreatorStorage()
+  const [postModalCreator, setPostModalCreator] = useState(null)
   const [step, setStep] = useState('idle') // idle | searching | posts | generating | refining
   const [topPosts, setTopPosts] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -290,7 +292,7 @@ function App() {
               setAnalyzedUsername(c.username || c.name)
               setAppMode('creator-report')
             }}
-            onUseForPost={() => {}}
+            onUseForPost={(c) => setPostModalCreator(c)}
           />
         ) : appMode === 'creator-report' ? (
           <CreatorReport
@@ -341,6 +343,12 @@ function App() {
           </div>
         )}
       </main>
+      {postModalCreator && (
+        <CreatePostModal
+          creator={postModalCreator}
+          onClose={() => setPostModalCreator(null)}
+        />
+      )}
     </div>
   )
 }
