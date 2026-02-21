@@ -60,29 +60,24 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
 
           {/* Main Mode Tabs */}
           <div className="flex items-center gap-1 bg-[#F0EDE8] rounded-xl p-1">
-            <button
-              type="button"
-              onClick={() => onAppModeChange('inspiration')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                appMode === 'inspiration'
-                  ? 'bg-white text-[#2D2B28] shadow-sm'
-                  : 'text-[#6B6560] hover:text-[#2D2B28]'
-              }`}
-            >
-              Inspiration
-            </button>
-            <button
-              type="button"
-              onClick={() => onAppModeChange('creator-report')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                appMode === 'creator-report'
-
-                  ? 'bg-white text-[#2D2B28] shadow-sm'
-                  : 'text-[#6B6560] hover:text-[#2D2B28]'
-              }`}
-            >
-              Creator-Analyse
-            </button>
+            {[
+              { value: 'inspiration', label: 'Inspiration' },
+              { value: 'creator-report', label: 'Creator-Analyse' },
+              { value: 'saved-creators', label: 'Meine Creators' },
+            ].map((tab) => (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => onAppModeChange(tab.value)}
+                className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  appMode === tab.value
+                    ? 'bg-white text-[#2D2B28] shadow-sm'
+                    : 'text-[#6B6560] hover:text-[#2D2B28]'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
           {/* Platform tabs — only in inspiration mode */}
@@ -109,7 +104,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
         </div>
 
         {/* Bottom row */}
-        {appMode === 'inspiration' ? (
+        {appMode === 'saved-creators' ? null : appMode === 'inspiration' ? (
           /* Inspiration: Search mode toggle + Search bar */
           <div className="pb-3 flex items-center gap-3 max-w-2xl">
             <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden flex-shrink-0">
@@ -236,7 +231,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
               </button>
             </div>
           </div>
-        ) : (
+        ) : appMode === 'creator-report' ? (
           /* Creator Report: simple username input */
           <div className="pb-3 max-w-2xl">
             <form onSubmit={handleCreatorSubmit}>
@@ -272,7 +267,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
               </div>
             </form>
           </div>
-        )}
+        ) : null}
       </div>
     </header>
   )

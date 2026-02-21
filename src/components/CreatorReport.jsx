@@ -1,4 +1,4 @@
-export default function CreatorReport({ report, isLoading, error, username }) {
+export default function CreatorReport({ report, isLoading, error, username, onSave, isSaved }) {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -87,6 +87,37 @@ export default function CreatorReport({ report, isLoading, error, username }) {
               </div>
             </div>
           </div>
+
+          {/* Speichern-Button */}
+          {onSave && (
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => onSave(report, username)}
+                disabled={isSaved}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+                  isSaved
+                    ? 'bg-green-50 text-green-700 border border-green-200 cursor-default'
+                    : 'bg-[#D97706] text-white hover:bg-[#B45309]'
+                }`}
+              >
+                {isSaved ? (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Gespeichert
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    Creator speichern
+                  </>
+                )}
+              </button>
+            </div>
+          )}
 
           {/* Stats — direkt im Header-Card */}
           {stats && (

@@ -5,10 +5,13 @@ import ArticleView from './components/ArticleView'
 import QuickEdits from './components/QuickEdits'
 import LandingPage from './components/LandingPage'
 import CreatorReport from './components/CreatorReport'
+import SavedCreators from './components/SavedCreators'
+import { useCreatorStorage } from './hooks/useCreatorStorage'
 
 function App() {
   const [showLanding, setShowLanding] = useState(true)
-  const [appMode, setAppMode] = useState('inspiration') // 'inspiration' | 'creator-report'
+  const [appMode, setAppMode] = useState('inspiration') // 'inspiration' | 'creator-report' | 'saved-creators'
+  const { savedCreators, saveCreator, deleteCreator, isCreatorSaved } = useCreatorStorage()
   const [step, setStep] = useState('idle') // idle | searching | posts | generating | refining
   const [topPosts, setTopPosts] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -278,12 +281,25 @@ function App() {
       />
 
       <main className="max-w-7xl mx-auto px-6 pt-28 pb-12">
-        {appMode === 'creator-report' ? (
+        {appMode === 'saved-creators' ? (
+          <SavedCreators
+            creators={savedCreators}
+            onDelete={deleteCreator}
+            onViewReport={(c) => {
+              setCreatorReport(c.fullReport)
+              setAnalyzedUsername(c.username || c.name)
+              setAppMode('creator-report')
+            }}
+            onUseForPost={() => {}}
+          />
+        ) : appMode === 'creator-report' ? (
           <CreatorReport
             report={creatorReport}
             isLoading={isAnalyzing}
             error={analyzeError}
             username={analyzedUsername}
+            onSave={saveCreator}
+            isSaved={isCreatorSaved(analyzedUsername)}
           />
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
