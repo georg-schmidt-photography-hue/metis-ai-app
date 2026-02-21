@@ -16,6 +16,7 @@ function App() {
   const [searchMode, setSearchMode] = useState('topic') // 'topic' | 'account'
   const [accountFilter, setAccountFilter] = useState('top4weeks') // 'top4weeks' | 'last10days'
   const [error, setError] = useState(null)
+  const [translateDE, setTranslateDE] = useState(false)
 
   // Creator Report state
   const [creatorReport, setCreatorReport] = useState(null)
@@ -46,7 +47,7 @@ function App() {
       const response = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-        body: JSON.stringify({ searchTerm: term, platform, searchMode, accountFilter }),
+        body: JSON.stringify({ searchTerm: term, platform, searchMode, accountFilter, translate: translateDE }),
       })
 
       if (!response.ok) throw new Error(`Server error: ${response.status}`)
@@ -257,6 +258,31 @@ function App() {
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 lg:w-2/3">
+              {/* DE/EN Toggle — nur wenn Posts vorhanden */}
+              {topPosts.length > 0 && !isViewingArticle && (
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs text-[#A39E93]">Sprache:</span>
+                  <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setTranslateDE(false)}
+                      className={`px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${!translateDE ? 'bg-[#2D2B28] text-white' : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'}`}
+                    >
+                      Original
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setTranslateDE(true); if (!topPosts[0]?.textDe) handleSearch(searchTerm) }}
+                      className={`px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${translateDE ? 'bg-[#2D2B28] text-white' : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'}`}
+                    >
+                      Deutsch
+                    </button>
+                  </div>
+                  {translateDE && !topPosts[0]?.textDe && (
+                    <span className="text-xs text-[#A39E93] italic">Wird übersetzt…</span>
+                  )}
+                </div>
+              )}
               {isViewingArticle ? (
                 <ArticleView
                   content={generatedPosts[viewingPostId].content}

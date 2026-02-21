@@ -1,5 +1,5 @@
 export default function PostCard({ post, index, platform, hasGeneratedContent, isGenerating, onGenerate, onView, onShowDetail }) {
-  const text = post.text || ''
+  const text = post.textDe || post.text || ''
   const title = text.split('\n')[0]?.slice(0, 80) || 'Ohne Titel'
   const description = text.split('\n').slice(1).join(' ').trim()
 

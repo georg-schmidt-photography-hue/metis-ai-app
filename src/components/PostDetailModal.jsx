@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 export default function PostDetailModal({ post, index, platform, onClose }) {
   const [expanded, setExpanded] = useState(true)
-  const text = post.text || ''
+  const text = post.textDe || post.text || ''
   const analysis = post.analysis
 
   const platformLabels = {
