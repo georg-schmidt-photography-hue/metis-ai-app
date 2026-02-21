@@ -43,12 +43,17 @@ function App() {
     setViewingPostId(null)
     setGeneratingIndex(null)
 
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 120000)
+
     try {
       const response = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify({ searchTerm: term, platform, searchMode, accountFilter, translate: translateDE }),
+        signal: controller.signal,
       })
+      clearTimeout(timeout)
 
       if (!response.ok) throw new Error(`Server error: ${response.status}`)
 
@@ -61,7 +66,12 @@ function App() {
       setTopPosts(data.posts)
       setStep('posts')
     } catch (err) {
-      setError(err.message || 'Suche fehlgeschlagen. Bitte versuche es erneut.')
+      clearTimeout(timeout)
+      if (err.name === 'AbortError') {
+        setError('Zeitüberschreitung — bitte erneut versuchen.')
+      } else {
+        setError(err.message || 'Suche fehlgeschlagen. Bitte versuche es erneut.')
+      }
       setStep('idle')
     }
   }
