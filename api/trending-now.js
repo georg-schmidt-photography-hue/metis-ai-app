@@ -10,23 +10,36 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'sonar',
-        max_tokens: 600,
+        max_tokens: 1200,
         messages: [
           {
             role: 'system',
-            content: 'Du gibst eine JSON-Antwort zurück. Nur JSON, kein Text drumherum.',
+            content: 'Du gibst ausschließlich valides JSON zurück. Kein Text davor oder danach.',
           },
           {
             role: 'user',
-            content: `Was sind heute die 10 meistgesuchten und trending Themen in Deutschland? Beziehe dich auf aktuelle Nachrichten, Google Trends Deutschland, Social Media Trends.
+            content: `Was sind heute die aktuell trendenden Themen in Deutschland auf folgenden Plattformen? Recherchiere aktuelle Daten von heute.
 
-Antworte NUR mit diesem JSON-Format:
+Antworte NUR mit diesem JSON:
 {
-  "topics": [
-    { "title": "Thema", "category": "Politik|Wirtschaft|Sport|Tech|Gesellschaft|Unterhaltung" },
-    ...
+  "google": [
+    { "title": "Thema", "category": "Politik|Wirtschaft|Sport|Tech|Gesellschaft" }
+  ],
+  "reddit": [
+    { "title": "Thema", "subreddit": "de|germany|..." }
+  ],
+  "twitter": [
+    { "title": "Hashtag oder Thema", "context": "kurze Erklärung warum es trendet" }
+  ],
+  "youtube": [
+    { "title": "Video-Titel oder Thema", "channel": "Kanalname falls bekannt" }
+  ],
+  "instagram": [
+    { "title": "Hashtag oder Thema", "context": "kurze Erklärung" }
   ]
-}`,
+}
+
+Jeweils 5 Einträge pro Plattform. Fokus auf Deutschland.`,
           },
         ],
       }),
@@ -34,20 +47,21 @@ Antworte NUR mit diesem JSON-Format:
 
     const data = await response.json()
     const raw = data.choices?.[0]?.message?.content || ''
-
-    // Extract JSON from response
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('Kein JSON in Antwort')
+    if (!jsonMatch) throw new Error('Kein JSON')
 
     const parsed = JSON.parse(jsonMatch[0])
-    const topics = (parsed.topics || []).slice(0, 10).map(t => ({
-      title: t.title || '',
-      category: t.category || '',
-      traffic: '',
-    }))
 
-    res.json({ topics, date: new Date().toLocaleDateString('de-DE'), source: 'perplexity' })
+    res.json({
+      google: (parsed.google || []).slice(0, 5),
+      reddit: (parsed.reddit || []).slice(0, 5),
+      twitter: (parsed.twitter || []).slice(0, 5),
+      youtube: (parsed.youtube || []).slice(0, 5),
+      instagram: (parsed.instagram || []).slice(0, 5),
+      date: new Date().toLocaleDateString('de-DE'),
+      time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+    })
   } catch (err) {
-    res.status(500).json({ error: err.message, topics: [] })
+    res.status(500).json({ error: err.message, google: [], reddit: [], twitter: [], youtube: [], instagram: [] })
   }
 }

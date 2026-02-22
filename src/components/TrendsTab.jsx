@@ -194,32 +194,61 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
   return (
     <div className="space-y-5">
 
-      {/* Trending Now — auto-loaded */}
+      {/* Trending Now — multi-platform */}
       <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-2xl p-5">
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-4">
           <span className="text-base">🔥</span>
-          <p className="text-xs font-semibold text-[#2D2B28] uppercase tracking-wider">Aktuell in Deutschland gesucht</p>
-          {trendingNow?.date && <span className="text-[10px] text-[#A39E93] ml-auto">{trendingNow.date}</span>}
+          <p className="text-xs font-semibold text-[#2D2B28] uppercase tracking-wider">Aktuell trending in Deutschland</p>
+          {trendingNow?.date && (
+            <span className="text-[10px] text-[#A39E93] ml-auto">
+              {trendingNow.date} · {trendingNow.time} Uhr
+            </span>
+          )}
         </div>
+
         {trendingLoading ? (
           <div className="flex items-center gap-2 text-xs text-[#A39E93]">
             <div className="w-3.5 h-3.5 border-2 border-[#D97706] border-t-transparent rounded-full animate-spin" />
-            Lade aktuelle Trends…
+            Perplexity durchsucht alle Plattformen…
           </div>
-        ) : trendingNow?.topics?.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {trendingNow.topics.map((t, i) => (
-              <button
-                key={i}
-                onClick={() => handleSearch(t.title)}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#E8E4DD] bg-white hover:bg-[#FEF3C7] hover:border-[#D97706] transition-all cursor-pointer text-left group disabled:opacity-50"
-              >
-                <span className="text-[10px] font-bold text-[#D97706] w-4 flex-shrink-0">{i + 1}</span>
-                <span className="text-xs font-medium text-[#2D2B28] group-hover:text-[#92400E]">{t.title}</span>
-                {t.category && <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[#F0EDE8] text-[#A39E93] flex-shrink-0">{t.category}</span>}
-              </button>
-            ))}
+        ) : trendingNow && (trendingNow.google?.length || trendingNow.reddit?.length) ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {[
+              { key: 'google', label: 'Google', icon: '🔍', color: 'text-blue-600', subtitle: t => t.category },
+              { key: 'reddit', label: 'Reddit', icon: '🤖', color: 'text-orange-500', subtitle: t => t.subreddit ? `r/${t.subreddit}` : '' },
+              { key: 'twitter', label: 'X / Twitter', icon: '𝕏', color: 'text-[#2D2B28]', subtitle: t => t.context },
+              { key: 'youtube', label: 'YouTube', icon: '▶', color: 'text-red-500', subtitle: t => t.channel },
+              { key: 'instagram', label: 'Instagram', icon: '📸', color: 'text-pink-500', subtitle: t => t.context },
+            ].map(({ key, label, icon, color, subtitle }) => {
+              const items = trendingNow[key] || []
+              if (!items.length) return null
+              return (
+                <div key={key} className="border border-[#F0EDE8] rounded-xl p-3 bg-white">
+                  <div className="flex items-center gap-1.5 mb-2.5">
+                    <span className={`text-sm font-bold ${color}`}>{icon}</span>
+                    <span className="text-[10px] font-semibold text-[#6B6560] uppercase tracking-wider">{label}</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {items.map((t, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleSearch(t.title.replace(/^#/, ''))}
+                        disabled={isLoading}
+                        className="w-full flex items-start gap-2 px-2 py-1.5 rounded-lg hover:bg-[#FEF3C7] transition-all cursor-pointer text-left group disabled:opacity-50"
+                      >
+                        <span className="text-[10px] font-bold text-[#D97706] w-3 flex-shrink-0 mt-0.5">{i + 1}</span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-[#2D2B28] group-hover:text-[#92400E] leading-tight">{t.title}</p>
+                          {subtitle(t) && (
+                            <p className="text-[9px] text-[#A39E93] truncate mt-0.5">{subtitle(t)}</p>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         ) : (
           <p className="text-xs text-[#A39E93]">Trending-Daten momentan nicht verfügbar — nutze die Suche unten</p>
