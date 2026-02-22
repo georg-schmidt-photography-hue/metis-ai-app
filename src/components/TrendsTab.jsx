@@ -104,6 +104,34 @@ function LineChart({ data, keyword, compareKeyword }) {
   )
 }
 
+function ScoreLabel({ score }) {
+  const s = Number(score)
+  if (s >= 80) return (
+    <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 border border-green-300 text-green-700 text-[10px] font-semibold">
+      <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+      Hochsaison — maximale Aufmerksamkeit
+    </div>
+  )
+  if (s >= 50) return (
+    <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-semibold">
+      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
+      Solides Interesse — guter Zeitpunkt
+    </div>
+  )
+  if (s >= 20) return (
+    <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEF3C7] border border-[#F59E0B] text-[#92400E] text-[10px] font-semibold">
+      <span className="w-1.5 h-1.5 rounded-full bg-[#D97706] inline-block" />
+      Schwache Phase — Timing überdenken
+    </div>
+  )
+  return (
+    <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-red-600 text-[10px] font-semibold">
+      <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
+      Kaum Interesse — Welle abwarten
+    </div>
+  )
+}
+
 const SUGGESTED_TOPICS = [
   'Photovoltaik', 'Wärmepumpe', 'KI Mittelstand', 'Leadership',
   'Nachhaltigkeit', 'Elektroauto', 'Remote Work', 'Digitalisierung',
@@ -278,12 +306,12 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
             <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-2xl p-5 text-center">
               <p className="text-3xl font-bold text-[#2D2B28]">{trendData.currentScore}</p>
               <p className="text-[10px] text-[#A39E93] uppercase tracking-wider mt-1">Aktueller Score</p>
-              <p className="text-[10px] text-[#C4BFB6] mt-0.5">von 100</p>
+              <ScoreLabel score={trendData.currentScore} />
             </div>
             <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-2xl p-5 text-center">
               <p className="text-3xl font-bold text-[#2D2B28]">{trendData.peakScore}</p>
               <p className="text-[10px] text-[#A39E93] uppercase tracking-wider mt-1">Peak Score</p>
-              <p className="text-[10px] text-[#C4BFB6] mt-0.5">letztes Jahr</p>
+              <p className="text-[10px] text-[#C4BFB6] mt-1">Jahreshöchstwert = 100</p>
             </div>
             <div className={`rounded-2xl p-5 text-center border ${trendColor}`}>
               <p className="text-xl font-bold mt-1">{trendLabel}</p>
