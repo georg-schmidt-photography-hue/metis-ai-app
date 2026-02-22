@@ -207,7 +207,10 @@ function App() {
         throw new Error(`HTTP ${response.status}: ${text.substring(0, 200)}`)
       }
 
-      const data = await response.json()
+      const text = await response.text()
+      if (!text.trim()) throw new Error('Keine Antwort vom Server — bitte erneut versuchen.')
+      let data
+      try { data = JSON.parse(text) } catch { throw new Error('Ungültige Antwort — bitte erneut versuchen.') }
 
       if (!data.success) {
         throw new Error(data.error || 'Analyse fehlgeschlagen. Bitte versuche es erneut.')
