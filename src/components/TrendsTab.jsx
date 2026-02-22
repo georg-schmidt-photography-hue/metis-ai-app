@@ -223,7 +223,8 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
               { key: 'instagram', label: 'Instagram', icon: '📸', color: 'text-pink-500', subtitle: t => t.context },
             ].map(({ key, label, icon, color, subtitle }) => {
               const items = trendingNow[key] || []
-              if (!items.length) return null
+              const validItems = items.filter(t => t.title?.trim() && t.title !== 'Nicht verfügbar')
+              if (!validItems.length) return null
               return (
                 <div key={key} className="border border-[#F0EDE8] rounded-xl p-3 bg-white">
                   <div className="flex items-center gap-1.5 mb-2.5">
