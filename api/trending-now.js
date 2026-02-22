@@ -1,66 +1,72 @@
 async function fetchPlatformTrends(platform, prompt) {
-  const res = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'sonar',
-      max_tokens: 400,
-      messages: [
-        { role: 'system', content: 'Antworte NUR mit einem JSON-Array. Kein Text davor oder danach.' },
-        { role: 'user', content: prompt },
-      ],
-    }),
-  })
-  const data = await res.json()
-  const raw = data.choices?.[0]?.message?.content || ''
-  const match = raw.match(/\[[\s\S]*\]/)
-  if (!match) return []
-  return JSON.parse(match[0]).slice(0, 5)
+  try {
+    const res = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'sonar',
+        max_tokens: 500,
+        messages: [
+          {
+            role: 'system',
+            content: 'Antworte NUR mit einem JSON-Array ohne Markdown, ohne Erklärungen, ohne Codeblocks. Nur das Array selbst.',
+          },
+          { role: 'user', content: prompt },
+        ],
+      }),
+    })
+
+    const data = await res.json()
+    const raw = (data.choices?.[0]?.message?.content || '').trim()
+
+    // Strip markdown code blocks if present
+    const cleaned = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
+
+    // Find first [ and last ] to extract array
+    const start = cleaned.indexOf('[')
+    const end = cleaned.lastIndexOf(']')
+    if (start === -1 || end === -1) return []
+
+    const jsonStr = cleaned.slice(start, end + 1)
+    const parsed = JSON.parse(jsonStr)
+    return Array.isArray(parsed) ? parsed.slice(0, 5) : []
+  } catch (e) {
+    console.error(`${platform} fetch failed:`, e.message)
+    return []
+  }
 }
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end()
 
-  try {
-    const [google, reddit, twitter, youtube, instagram] = await Promise.all([
+  const [google, reddit, twitter, youtube, instagram] = await Promise.all([
 
-      fetchPlatformTrends('google', `Was sind heute die 5 meistgesuchten Themen auf Google in Deutschland?
-Fokus: Was suchen Deutsche gerade aktiv — nicht nur Nachrichten.
-JSON-Array: [{"title":"...", "category":"Politik|Wirtschaft|Sport|Tech|Lifestyle|Unterhaltung"}]`),
+    fetchPlatformTrends('google', `5 meistgesuchte Themen auf Google Deutschland heute. Nur JSON-Array:
+[{"title":"Thema","category":"Politik|Wirtschaft|Sport|Tech|Lifestyle"}]`),
 
-      fetchPlatformTrends('reddit', `Was sind heute die 5 heißesten Posts oder Diskussionen auf Reddit in deutschen Subreddits (r/de, r/germany, r/finanzen, r/de_it etc.)?
-Was diskutieren Deutsche auf Reddit gerade — typisch Reddit: kontroverse Meinungen, Alltagsthemen, Humor, Tech-Fragen.
-JSON-Array: [{"title":"...", "subreddit":"de|germany|finanzen|..."}]`),
+    fetchPlatformTrends('reddit', `5 trending Diskussionen in deutschen Reddit-Communitys (r/de, r/germany, r/finanzen) heute. Typisch Reddit: Alltag, Humor, Kontroversen. Nur JSON-Array:
+[{"title":"Thema","subreddit":"de"}]`),
 
-      fetchPlatformTrends('twitter', `Was sind heute die 5 trending Hashtags oder Themen auf X (Twitter) in Deutschland?
-Typisch Twitter/X: politische Debatten, Breaking News, Memes, Empörungsthemen, Promi-Drama.
-Nicht dieselben Themen wie Google — Twitter hat eigene Dynamik.
-JSON-Array: [{"title":"#Hashtag oder Thema", "context":"1 Satz warum es gerade trendet"}]`),
+    fetchPlatformTrends('twitter', `5 trending Hashtags auf X/Twitter Deutschland heute. Typisch: Breaking News, Politik-Debatten, Memes. Nur JSON-Array:
+[{"title":"#Hashtag","context":"Grund in 5 Worten"}]`),
 
-      fetchPlatformTrends('youtube', `Was sind heute die 5 trending Videos oder Themen auf YouTube in Deutschland?
-Typisch YouTube: Musik-Releases, Gaming, Tutorials, Reaktionsvideos, politische Kommentare, Unterhaltung.
-Nicht dieselben Nachrichten-Themen wie Google.
-JSON-Array: [{"title":"...", "channel":"Kanalname falls bekannt", "type":"Musik|Gaming|News|Tutorial|Entertainment"}]`),
+    fetchPlatformTrends('youtube', `5 trending Videos oder Themen auf YouTube Deutschland heute. Typisch: Musik, Gaming, News, Entertainment. Nur JSON-Array:
+[{"title":"Video-Titel","channel":"Kanal","type":"Musik|Gaming|News|Entertainment"}]`),
 
-      fetchPlatformTrends('instagram', `Was sind heute die 5 trending Hashtags oder Themen auf Instagram in Deutschland?
-Typisch Instagram: Lifestyle, Mode, Food, Reise, Fitness, Beauty, Creator-Content, Reels-Trends.
-Sehr anders als Google oder Twitter — visueller Lifestyle-Content.
-JSON-Array: [{"title":"#hashtag oder Thema", "context":"1 Satz Kontext"}]`),
-    ])
+    fetchPlatformTrends('instagram', `5 trending Hashtags oder Themen auf Instagram Deutschland heute. Typisch: Lifestyle, Mode, Food, Fitness, Reels. Nur JSON-Array:
+[{"title":"#hashtag","context":"Kontext in 5 Worten"}]`),
+  ])
 
-    res.json({
-      google,
-      reddit,
-      twitter,
-      youtube,
-      instagram,
-      date: new Date().toLocaleDateString('de-DE'),
-      time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
-    })
-  } catch (err) {
-    res.status(500).json({ error: err.message, google: [], reddit: [], twitter: [], youtube: [], instagram: [] })
-  }
+  res.json({
+    google,
+    reddit,
+    twitter,
+    youtube,
+    instagram,
+    date: new Date().toLocaleDateString('de-DE'),
+    time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+  })
 }
