@@ -170,7 +170,9 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ keyword: term.trim(), compareWith: compareKeyword.trim() || null, geo: 'DE' }),
       })
-      const data = await res.json()
+      const text = await res.text()
+      let data
+      try { data = JSON.parse(text) } catch { throw new Error('Ungültige Serverantwort — bitte erneut versuchen') }
       if (!res.ok) throw new Error(data.error || 'Fehler beim Laden')
       setTrendData(data)
     } catch (err) {
@@ -229,7 +231,7 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                     <span className="text-[10px] font-semibold text-[#6B6560] uppercase tracking-wider">{label}</span>
                   </div>
                   <div className="space-y-1.5">
-                    {items.map((t, i) => (
+                    {items.filter(t => t.title?.trim()).map((t, i) => (
                       <button
                         key={i}
                         onClick={() => handleSearch(t.title.replace(/^#/, ''))}
