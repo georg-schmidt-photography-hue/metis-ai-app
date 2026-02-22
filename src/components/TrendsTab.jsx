@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 function LineChart({ data, keyword, compareKeyword }) {
   const [tooltip, setTooltip] = useState(null)
@@ -117,6 +117,16 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
   const [trendData, setTrendData] = useState(null)
   const [error, setError] = useState(null)
   const [selectedCreator, setSelectedCreator] = useState(null)
+  const [trendingNow, setTrendingNow] = useState(null)
+  const [trendingLoading, setTrendingLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/trending-now')
+      .then(r => r.json())
+      .then(d => setTrendingNow(d))
+      .catch(() => setTrendingNow(null))
+      .finally(() => setTrendingLoading(false))
+  }, [])
 
   const handleSearch = async (kw) => {
     const term = kw || keyword
@@ -155,6 +165,39 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
 
   return (
     <div className="space-y-5">
+
+      {/* Trending Now — auto-loaded */}
+      <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-2xl p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-base">🔥</span>
+          <p className="text-xs font-semibold text-[#2D2B28] uppercase tracking-wider">Aktuell in Deutschland gesucht</p>
+          {trendingNow?.date && <span className="text-[10px] text-[#A39E93] ml-auto">{trendingNow.date}</span>}
+        </div>
+        {trendingLoading ? (
+          <div className="flex items-center gap-2 text-xs text-[#A39E93]">
+            <div className="w-3.5 h-3.5 border-2 border-[#D97706] border-t-transparent rounded-full animate-spin" />
+            Lade aktuelle Trends…
+          </div>
+        ) : trendingNow?.topics?.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {trendingNow.topics.map((t, i) => (
+              <button
+                key={i}
+                onClick={() => handleSearch(t.title)}
+                disabled={isLoading}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#E8E4DD] bg-white hover:bg-[#FEF3C7] hover:border-[#D97706] transition-all cursor-pointer text-left group disabled:opacity-50"
+              >
+                <span className="text-[10px] font-bold text-[#D97706] w-4">{i + 1}</span>
+                <span className="text-xs font-medium text-[#2D2B28] group-hover:text-[#92400E]">{t.title}</span>
+                {t.traffic && <span className="text-[10px] text-[#A39E93]">{t.traffic}</span>}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-[#A39E93]">Trending-Daten momentan nicht verfügbar — nutze die Suche unten</p>
+        )}
+      </div>
+
       {/* Search */}
       <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-2xl p-5">
         <p className="text-[10px] font-semibold text-[#A39E93] uppercase tracking-widest mb-3">Google Trends — Deutschland</p>
