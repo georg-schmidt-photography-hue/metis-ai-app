@@ -12,30 +12,27 @@ export default async function handler(req, res) {
       ? [keyword, compareWith]
       : [keyword]
 
-    const [interestOverTime, relatedTopics, relatedQueries] = await Promise.all([
-      googleTrends.interestOverTime({
-        keyword: comparisonKeywords,
-        geo,
-        startTime: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
-      }).then(r => JSON.parse(r)),
+    const startTime = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
 
-      googleTrends.relatedTopics({
-        keyword,
-        geo,
-      }).then(r => JSON.parse(r)),
-
-      googleTrends.relatedQueries({
-        keyword,
-        geo,
-      }).then(r => JSON.parse(r)),
+    // Fetch main keyword data + optional compare separately (array call is unreliable)
+    const [mainOverTime, compareOverTime, relatedTopics, relatedQueries] = await Promise.all([
+      googleTrends.interestOverTime({ keyword, geo, startTime }).then(r => JSON.parse(r)),
+      compareWith && compareWith !== keyword
+        ? googleTrends.interestOverTime({ keyword: compareWith, geo, startTime }).then(r => JSON.parse(r)).catch(() => null)
+        : Promise.resolve(null),
+      googleTrends.relatedTopics({ keyword, geo }).then(r => JSON.parse(r)).catch(() => null),
+      googleTrends.relatedQueries({ keyword, geo }).then(r => JSON.parse(r)).catch(() => null),
     ])
 
-    // Parse interest over time — supports 1 or 2 keywords
-    const timelineData = interestOverTime?.default?.timelineData?.map(d => ({
+    // Merge both timelines by index
+    const mainTimeline = mainOverTime?.default?.timelineData || []
+    const compareTimeline = compareOverTime?.default?.timelineData || []
+
+    const timelineData = mainTimeline.map((d, i) => ({
       date: d.formattedTime,
       value: d.value?.[0] || 0,
-      compareValue: d.value?.[1] ?? null,
-    })) || []
+      compareValue: compareTimeline[i]?.value?.[0] ?? null,
+    }))
 
     // Rising topics
     const risingTopics = relatedTopics?.default?.rankedList?.[0]?.rankedKeyword
