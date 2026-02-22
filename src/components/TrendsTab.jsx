@@ -1,4 +1,108 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+
+function LineChart({ data, keyword, compareKeyword }) {
+  const [tooltip, setTooltip] = useState(null)
+  const svgRef = useRef(null)
+  const W = 800, H = 160, PL = 36, PR = 8, PT = 10, PB = 24
+
+  const vals = data.map(d => d.value)
+  const cvals = data.map(d => d.compareValue ?? null)
+  const hasCompare = cvals.some(v => v !== null)
+
+  const xScale = (i) => PL + (i / (data.length - 1)) * (W - PL - PR)
+  const yScale = (v) => PT + (1 - v / 100) * (H - PT - PB)
+
+  const linePath = (values) => values
+    .map((v, i) => v == null ? null : `${i === 0 || values[i-1] == null ? 'M' : 'L'}${xScale(i).toFixed(1)},${yScale(v).toFixed(1)}`)
+    .filter(Boolean).join(' ')
+
+  const areaPath = (values) => {
+    const pts = values.map((v, i) => v != null ? `${xScale(i).toFixed(1)},${yScale(v).toFixed(1)}` : null).filter(Boolean)
+    if (!pts.length) return ''
+    const first = values.findIndex(v => v != null)
+    const last = values.length - 1 - [...values].reverse().findIndex(v => v != null)
+    return `M${xScale(first)},${H - PB} L${pts.join(' L')} L${xScale(last)},${H - PB} Z`
+  }
+
+  const xLabels = [0, Math.floor(data.length/4), Math.floor(data.length/2), Math.floor(data.length*3/4), data.length-1]
+
+  return (
+    <div className="relative select-none">
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full"
+        style={{ height: 180 }}
+        onMouseMove={(e) => {
+          const rect = svgRef.current.getBoundingClientRect()
+          const x = (e.clientX - rect.left) / rect.width * W
+          const idx = Math.round(((x - PL) / (W - PL - PR)) * (data.length - 1))
+          if (idx >= 0 && idx < data.length) setTooltip({ idx, x: rect.left + (xScale(idx) / W) * rect.width, y: e.clientY })
+        }}
+        onMouseLeave={() => setTooltip(null)}
+      >
+        {/* Grid lines */}
+        {[0, 25, 50, 75, 100].map(v => (
+          <g key={v}>
+            <line x1={PL} x2={W - PR} y1={yScale(v)} y2={yScale(v)} stroke="#F0EDE8" strokeWidth="1" />
+            <text x={PL - 4} y={yScale(v) + 3} textAnchor="end" fontSize="9" fill="#C4BFB6">{v}</text>
+          </g>
+        ))}
+
+        {/* Area fill — compare */}
+        {hasCompare && <path d={areaPath(cvals)} fill="#64748B" fillOpacity="0.06" />}
+        {/* Area fill — main */}
+        <path d={areaPath(vals)} fill="#D97706" fillOpacity="0.10" />
+
+        {/* Lines */}
+        {hasCompare && <path d={linePath(cvals)} fill="none" stroke="#64748B" strokeWidth="2" strokeDasharray="5,3" />}
+        <path d={linePath(vals)} fill="none" stroke="#D97706" strokeWidth="2.5" />
+
+        {/* Hover dot */}
+        {tooltip && (
+          <>
+            <line x1={xScale(tooltip.idx)} x2={xScale(tooltip.idx)} y1={PT} y2={H - PB} stroke="#2D2B28" strokeWidth="1" strokeOpacity="0.2" />
+            {data[tooltip.idx]?.value != null && (
+              <circle cx={xScale(tooltip.idx)} cy={yScale(data[tooltip.idx].value)} r="4" fill="#D97706" stroke="white" strokeWidth="2" />
+            )}
+            {data[tooltip.idx]?.compareValue != null && (
+              <circle cx={xScale(tooltip.idx)} cy={yScale(data[tooltip.idx].compareValue)} r="4" fill="#64748B" stroke="white" strokeWidth="2" />
+            )}
+          </>
+        )}
+
+        {/* X-axis labels */}
+        {xLabels.map(idx => (
+          <text key={idx} x={xScale(idx)} y={H - 4} textAnchor="middle" fontSize="9" fill="#C4BFB6">
+            {data[idx]?.date?.split(' ')[0]}
+          </text>
+        ))}
+      </svg>
+
+      {/* Tooltip popup */}
+      {tooltip && (
+        <div
+          className="fixed z-50 pointer-events-none bg-[#2D2B28] text-white text-[11px] px-3 py-2 rounded-xl shadow-lg leading-relaxed"
+          style={{ left: tooltip.x + 12, top: tooltip.y - 40, transform: 'translateY(-50%)' }}
+        >
+          <div className="font-semibold mb-1">{data[tooltip.idx]?.date}</div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-0.5 bg-[#D97706] inline-block rounded" />
+            <span className="text-[#A39E93]">{keyword}:</span>
+            <span className="font-bold text-[#D97706]">{data[tooltip.idx]?.value}</span>
+          </div>
+          {data[tooltip.idx]?.compareValue != null && (
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-0.5 bg-[#64748B] inline-block rounded" />
+              <span className="text-[#A39E93]">{compareKeyword}:</span>
+              <span className="font-bold text-[#94A3B8]">{data[tooltip.idx]?.compareValue}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 const SUGGESTED_TOPICS = [
   'Photovoltaik', 'Wärmepumpe', 'KI Mittelstand', 'Leadership',
@@ -135,84 +239,31 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
             </div>
           </div>
 
-          {/* Interest over time chart */}
+          {/* Interest over time — SVG line chart */}
           {trendData.timelineData.length > 0 && (
             <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-2xl p-5">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <p className="text-xs font-semibold text-[#6B6560] uppercase tracking-wider">Interesse über Zeit — 12 Monate</p>
-                  <p className="text-[10px] text-[#A39E93] mt-1">Vergleich: dein Thema vs. aktuell meiststgesuchtes Thema in Deutschland</p>
+                  <p className="text-[10px] text-[#A39E93] mt-1">
+                    Score 100 = höchstes Interesse im Zeitraum · Hover für Details
+                  </p>
                 </div>
-                <div className="flex items-center gap-3 text-[10px] flex-shrink-0 ml-4">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-sm bg-[#D97706] inline-block" />
+                <div className="flex items-center gap-4 text-[11px] flex-shrink-0 ml-4">
+                  <span className="flex items-center gap-1.5 font-medium text-[#D97706]">
+                    <span className="w-8 h-0.5 bg-[#D97706] inline-block rounded" />
                     {trendData.keyword}
                   </span>
                   {trendData.compareKeyword && (
-                    <span className="flex items-center gap-1.5 text-[#A39E93]">
-                      <span className="w-3 h-3 rounded-sm bg-[#94A3B8] inline-block" />
+                    <span className="flex items-center gap-1.5 font-medium text-[#64748B]">
+                      <span className="w-8 h-0.5 bg-[#64748B] inline-block rounded border-dashed" style={{borderTop:'2px dashed #64748B', height:0}} />
                       {trendData.compareKeyword}
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* Chart */}
-              <div className="relative h-40">
-                {/* Y-axis labels */}
-                <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between">
-                  {[100, 75, 50, 25, 0].map(v => (
-                    <span key={v} className="text-[9px] text-[#C4BFB6] w-6 text-right">{v}</span>
-                  ))}
-                </div>
-                {/* Bars area */}
-                <div className="ml-8 h-full flex flex-col">
-                  <div className="flex-1 flex items-end gap-px relative">
-                    {/* Grid lines */}
-                    {[25, 50, 75].map(v => (
-                      <div
-                        key={v}
-                        className="absolute left-0 right-0 border-t border-[#F0EDE8]"
-                        style={{ bottom: `${v}%` }}
-                      />
-                    ))}
-                    {trendData.timelineData.map((d, i) => {
-                      const pct = Math.round((d.value / 100) * 100)
-                      const cmpPct = d.compareValue != null ? Math.round((d.compareValue / 100) * 100) : null
-                      return (
-                        <div key={i} className="flex-1 flex items-end gap-px group relative">
-                          {/* Comparison bar (behind) */}
-                          {cmpPct != null && (
-                            <div
-                              className="absolute inset-x-0 bottom-0 bg-[#CBD5E1] rounded-t-sm opacity-60"
-                              style={{ height: `${Math.max(cmpPct, cmpPct > 0 ? 2 : 0)}%` }}
-                            />
-                          )}
-                          {/* Main bar */}
-                          <div
-                            className={`relative z-10 w-full rounded-t-sm transition-all ${d.value > 0 ? 'bg-[#D97706]' : 'bg-[#F0EDE8]'}`}
-                            style={{ height: `${Math.max(pct, d.value > 0 ? 2 : 1)}%` }}
-                          />
-                          {/* Tooltip */}
-                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-[#2D2B28] text-white text-[9px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-20 leading-relaxed">
-                            <div className="font-semibold">{d.date}</div>
-                            <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-[#D97706] inline-block" /> {trendData.keyword}: {d.value}</div>
-                            {cmpPct != null && <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-[#CBD5E1] inline-block" /> {trendData.compareKeyword}: {d.compareValue}</div>}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                  {/* X-axis */}
-                  <div className="flex justify-between mt-1 h-5">
-                    {[0, Math.floor(trendData.timelineData.length / 4), Math.floor(trendData.timelineData.length / 2), Math.floor(trendData.timelineData.length * 3 / 4), trendData.timelineData.length - 1].map(idx => (
-                      <span key={idx} className="text-[9px] text-[#C4BFB6] truncate max-w-16">
-                        {trendData.timelineData[idx]?.date?.split(' ')[0]}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <LineChart data={trendData.timelineData} keyword={trendData.keyword} compareKeyword={trendData.compareKeyword} />
             </div>
           )}
 
