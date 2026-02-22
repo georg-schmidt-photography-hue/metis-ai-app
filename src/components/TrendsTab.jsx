@@ -215,9 +215,9 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                 disabled={isLoading}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#E8E4DD] bg-white hover:bg-[#FEF3C7] hover:border-[#D97706] transition-all cursor-pointer text-left group disabled:opacity-50"
               >
-                <span className="text-[10px] font-bold text-[#D97706] w-4">{i + 1}</span>
+                <span className="text-[10px] font-bold text-[#D97706] w-4 flex-shrink-0">{i + 1}</span>
                 <span className="text-xs font-medium text-[#2D2B28] group-hover:text-[#92400E]">{t.title}</span>
-                {t.traffic && <span className="text-[10px] text-[#A39E93]">{t.traffic}</span>}
+                {t.category && <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[#F0EDE8] text-[#A39E93] flex-shrink-0">{t.category}</span>}
               </button>
             ))}
           </div>
