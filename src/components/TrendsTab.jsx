@@ -264,6 +264,15 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
 
       {trendData && (
         <>
+          {/* Score explanation */}
+          <div className="bg-[#FEF3C7] border border-[#F59E0B] rounded-xl px-4 py-2.5 text-xs text-[#92400E] flex items-start gap-2">
+            <span className="flex-shrink-0 mt-0.5">ℹ️</span>
+            <span>
+              <strong>Score 0–100</strong> = relatives Suchinteresse. 100 = höchster Punkt im Zeitraum. Die Hover-Zahlen sind <em>keine</em> absoluten Suchanfragen — Google normiert immer auf 100.
+              &nbsp;·&nbsp; <strong>Steigend</strong> = jetzt posten · <strong>Fallend</strong> = Welle abwarten
+            </span>
+          </div>
+
           {/* Score + Trend */}
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-2xl p-5 text-center">
