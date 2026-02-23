@@ -26,7 +26,8 @@ export default async function handler(req, res) {
 Antworte NUR mit diesem JSON-Objekt:
 {
   "google": ["Thema 1", "Thema 2", "Thema 3", "Thema 4", "Thema 5"],
-  "reddit": ["Thema 1", "Thema 2", "Thema 3", "Thema 4", "Thema 5"]
+  "twitter": ["#Hashtag1", "Thema 2", "Thema 3", "Thema 4", "Thema 5"],
+  "youtube": ["Video/Thema 1", "Thema 2", "Thema 3", "Thema 4", "Thema 5"]
 }`,
           },
         ],
@@ -49,9 +50,9 @@ Antworte NUR mit diesem JSON-Objekt:
     res.setHeader('Cache-Control', 'no-store')
     res.json({
       google: normalize(parsed.google),
-      reddit: normalize(parsed.reddit),
-      twitter: [],
-      youtube: [],
+      twitter: normalize(parsed.twitter),
+      youtube: normalize(parsed.youtube),
+      reddit: [],
       instagram: [],
       date: new Date().toLocaleDateString('de-DE'),
       time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
