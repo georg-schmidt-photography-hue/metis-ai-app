@@ -1,5 +1,100 @@
 import { useState } from 'react'
 
+function ScoreRing({ score }) {
+  const color = score >= 75 ? '#16a34a' : score >= 50 ? '#D97706' : score >= 30 ? '#ea580c' : '#dc2626'
+  const label = score >= 75 ? 'Stark' : score >= 50 ? 'Gut' : score >= 30 ? 'Okay' : 'Schwach'
+  const r = 28, c = 2 * Math.PI * r
+  const fill = (score / 100) * c
+  return (
+    <div className="flex items-center gap-4">
+      <svg width="72" height="72" viewBox="0 0 72 72">
+        <circle cx="36" cy="36" r={r} fill="none" stroke="#F0EDE8" strokeWidth="6" />
+        <circle cx="36" cy="36" r={r} fill="none" stroke={color} strokeWidth="6"
+          strokeDasharray={`${fill} ${c}`} strokeLinecap="round"
+          transform="rotate(-90 36 36)" style={{ transition: 'stroke-dasharray 1s ease' }} />
+        <text x="36" y="40" textAnchor="middle" fontSize="15" fontWeight="700" fill={color}>{score}</text>
+      </svg>
+      <div>
+        <p className="text-lg font-bold" style={{ color }}>{label}</p>
+        <p className="text-xs text-[#A39E93]">Virality Score</p>
+      </div>
+    </div>
+  )
+}
+
+function AnalysisPanel({ analysis, onUseHook, onClose }) {
+  const hookColor = analysis.hookAnalysis?.rating === 'Stark' ? 'text-green-600' : analysis.hookAnalysis?.rating === 'Okay' ? 'text-[#D97706]' : 'text-red-500'
+
+  return (
+    <div className="mt-5 border border-[#E8E4DD] rounded-xl overflow-hidden">
+      {/* Header */}
+      <div className="bg-[#F7F5F0] px-4 py-3 flex items-center justify-between border-b border-[#E8E4DD]">
+        <p className="text-xs font-semibold text-[#2D2B28] uppercase tracking-wider">Post-Analyse</p>
+        <button onClick={onClose} className="text-[#A39E93] hover:text-[#2D2B28] text-xs cursor-pointer">✕ Schließen</button>
+      </div>
+
+      <div className="p-4 space-y-5">
+        {/* Score */}
+        <div className="flex items-start justify-between gap-4">
+          <ScoreRing score={analysis.score} />
+          <div className="flex-1 bg-[#FFFDF9] border border-[#E8E4DD] rounded-xl p-3">
+            <p className="text-xs font-semibold text-[#6B6560] uppercase tracking-wider mb-1">Gesamturteil</p>
+            <p className="text-sm text-[#2D2B28] leading-relaxed">{analysis.verdict}</p>
+            {analysis.styleConsistency && (
+              <p className="text-xs text-[#A39E93] mt-2 italic">{analysis.styleConsistency}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Hook */}
+        {analysis.hookAnalysis && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-xs font-semibold text-[#2D2B28] uppercase tracking-wider">Hook</p>
+              <span className={`text-xs font-semibold ${hookColor}`}>{analysis.hookAnalysis.rating}</span>
+            </div>
+            {analysis.hookAnalysis.problem && (
+              <p className="text-xs text-[#6B6560] mb-3">{analysis.hookAnalysis.problem}</p>
+            )}
+            <div className="space-y-2">
+              {analysis.hookAnalysis.rewrites?.map((hook, i) => (
+                <div key={i} className="flex items-start gap-2 p-2.5 bg-[#FFFDF9] border border-[#E8E4DD] rounded-lg group hover:border-[#D97706] transition-all">
+                  <span className="text-[10px] font-bold text-[#D97706] mt-0.5 w-4 flex-shrink-0">{i + 1}</span>
+                  <p className="text-xs text-[#2D2B28] flex-1 leading-relaxed">{hook}</p>
+                  <button
+                    onClick={() => onUseHook(hook)}
+                    className="text-[10px] text-[#D97706] border border-[#D97706] px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-all cursor-pointer flex-shrink-0"
+                  >
+                    Übernehmen
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Improvements */}
+        {analysis.improvements?.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-[#2D2B28] uppercase tracking-wider mb-2">Konkrete Verbesserungen</p>
+            <div className="space-y-2">
+              {analysis.improvements.map((imp, i) => (
+                <div key={i} className="p-3 bg-[#FFFDF9] border border-[#E8E4DD] rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#92400E]">{imp.type}</span>
+                    <p className="text-xs text-[#6B6560]">{imp.issue}</p>
+                  </div>
+                  <p className="text-xs text-[#2D2B28] leading-relaxed">→ {imp.fix}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function PreviewContent({ content }) {
   if (!content) return null
 
@@ -49,10 +144,13 @@ function PreviewContent({ content }) {
   )
 }
 
-export default function ArticleView({ content, platform, onBack, onContentChange, isRefining }) {
+export default function ArticleView({ content, platform, onBack, onContentChange, isRefining, styleProfile, topPosts }) {
   const [activeTab, setActiveTab] = useState('preview')
   const [editedContent, setEditedContent] = useState(content)
   const [copied, setCopied] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysis, setAnalysis] = useState(null)
+  const [analyzeError, setAnalyzeError] = useState(null)
 
   // Sync when content changes externally (e.g. after refine)
   const [lastContent, setLastContent] = useState(content)
@@ -66,6 +164,36 @@ export default function ArticleView({ content, platform, onBack, onContentChange
   const handleEditChange = (e) => {
     setEditedContent(e.target.value)
     onContentChange(e.target.value)
+  }
+
+  const handleAnalyze = async () => {
+    setIsAnalyzing(true)
+    setAnalyzeError(null)
+    setAnalysis(null)
+    try {
+      const res = await fetch('/api/analyze-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post: editedContent, styleProfile, topPosts }),
+      })
+      const data = await res.json()
+      if (!data.success) throw new Error(data.error)
+      setAnalysis(data.analysis)
+    } catch (err) {
+      setAnalyzeError(err.message)
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
+  const handleUseHook = (hook) => {
+    const lines = editedContent.split('\n')
+    lines[0] = hook
+    const newContent = lines.join('\n')
+    setEditedContent(newContent)
+    onContentChange(newContent)
+    setAnalysis(null)
+    setActiveTab('preview')
   }
 
   const handleCopy = async () => {
@@ -111,6 +239,17 @@ export default function ArticleView({ content, platform, onBack, onContentChange
           <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border bg-[#F7F5F0] text-[#8A8578] border-[#E8E4DD]">
             Quelle: {platformLabels[platform] || 'LinkedIn'}
           </span>
+          <button
+            onClick={handleAnalyze}
+            disabled={isAnalyzing}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#D97706] text-[#D97706] bg-[#FEF3C7] hover:bg-[#FDE68A] transition-all cursor-pointer disabled:opacity-50"
+          >
+            {isAnalyzing ? (
+              <><div className="w-3 h-3 border-2 border-[#D97706] border-t-transparent rounded-full animate-spin" /> Analysiere…</>
+            ) : (
+              <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg> Virality Score</>
+            )}
+          </button>
           <button
             onClick={handleCopy}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#E8E4DD] text-[#6B6560] hover:bg-[#F7F5F0] hover:text-[#2D2B28] transition-all cursor-pointer"
@@ -163,6 +302,10 @@ export default function ArticleView({ content, platform, onBack, onContentChange
         </button>
       </div>
 
+      {analyzeError && (
+        <p className="text-xs text-red-500 mb-3">{analyzeError}</p>
+      )}
+
       {/* Content area */}
       {isRefining ? (
         <div className="space-y-4 animate-pulse">
@@ -183,6 +326,14 @@ export default function ArticleView({ content, platform, onBack, onContentChange
           value={editedContent}
           onChange={handleEditChange}
           className="w-full min-h-[400px] p-4 text-sm text-[#2D2B28] leading-relaxed bg-[#F7F5F0] border border-[#E8E4DD] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent resize-y font-[inherit]"
+        />
+      )}
+
+      {analysis && (
+        <AnalysisPanel
+          analysis={analysis}
+          onUseHook={handleUseHook}
+          onClose={() => setAnalysis(null)}
         />
       )}
     </div>

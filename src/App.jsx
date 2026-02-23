@@ -344,6 +344,8 @@ function App() {
                   onBack={handleBackToDashboard}
                   onContentChange={handleArticleContentChange}
                   isRefining={step === 'refining'}
+                  styleProfile={styleProfile}
+                  topPosts={topPosts}
                 />
               ) : (
                 <ContentOutput
