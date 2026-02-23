@@ -27,7 +27,8 @@ Antworte NUR mit diesem JSON-Objekt:
 {
   "google": ["Thema 1", "Thema 2", "Thema 3", "Thema 4", "Thema 5"],
   "twitter": ["#Hashtag1", "Thema 2", "Thema 3", "Thema 4", "Thema 5"],
-  "youtube": ["Video/Thema 1", "Thema 2", "Thema 3", "Thema 4", "Thema 5"]
+  "youtube": ["Video/Thema 1", "Thema 2", "Thema 3", "Thema 4", "Thema 5"],
+  "reddit": ["Thema 1", "Thema 2", "Thema 3", "Thema 4", "Thema 5"]
 }`,
           },
         ],
@@ -52,7 +53,7 @@ Antworte NUR mit diesem JSON-Objekt:
       google: normalize(parsed.google),
       twitter: normalize(parsed.twitter),
       youtube: normalize(parsed.youtube),
-      reddit: [],
+      reddit: normalize(parsed.reddit),
       instagram: [],
       date: new Date().toLocaleDateString('de-DE'),
       time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
