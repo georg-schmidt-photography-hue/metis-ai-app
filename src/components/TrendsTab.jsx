@@ -149,7 +149,7 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
   const [trendingLoading, setTrendingLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/trending-now')
+    fetch(`/api/trending-now?t=${Date.now()}`, { cache: 'no-store' })
       .then(r => r.json())
       .then(d => setTrendingNow(d))
       .catch(() => setTrendingNow(null))
