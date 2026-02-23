@@ -33,9 +33,12 @@ async function fetchPlatformTrends(platform, prompt) {
     const jsonStr = cleaned.slice(start, end + 1)
     const parsed = JSON.parse(jsonStr)
     if (!Array.isArray(parsed)) return []
-    return parsed.slice(0, 5).map(item =>
-      typeof item === 'string' ? { title: item } : item
-    )
+    return parsed.slice(0, 5).map(item => {
+      if (typeof item === 'string') {
+        try { return JSON.parse(item) } catch { return { title: item } }
+      }
+      return item
+    })
   } catch (e) {
     console.error(`${platform} fetch failed:`, e.message)
     return []
