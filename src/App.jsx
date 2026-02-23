@@ -9,11 +9,14 @@ import SavedCreators from './components/SavedCreators'
 import CreatePostModal from './components/CreatePostModal'
 import TrendsTab from './components/TrendsTab'
 import { useCreatorStorage } from './hooks/useCreatorStorage'
+import { useStyleProfile } from './hooks/useStyleProfile'
+import StyleSetup from './components/StyleSetup'
 
 function App() {
   const [showLanding, setShowLanding] = useState(true)
   const [appMode, setAppMode] = useState('inspiration') // 'inspiration' | 'creator-report' | 'saved-creators' | 'trends'
   const { savedCreators, saveCreator, deleteCreator, isCreatorSaved } = useCreatorStorage()
+  const { styleProfile, styleSource, selectedStyleCreator, saveOwnStyle, useCreatorStyle, useMixedStyle, clearStyle, buildStyleInstruction } = useStyleProfile()
   const [postModalCreator, setPostModalCreator] = useState(null)
   const [postModalPrefill, setPostModalPrefill] = useState(null)
   const [postModalTrendContext, setPostModalTrendContext] = useState(null)
@@ -120,6 +123,7 @@ function App() {
           searchTerm,
           platform,
           quickEdits: settings.quickEdits || [],
+          styleInstruction: buildStyleInstruction(),
         }),
       })
 
@@ -161,6 +165,7 @@ function App() {
           searchTerm,
           platform,
           quickEdits: settings.quickEdits || [],
+          styleInstruction: buildStyleInstruction(),
         }),
       })
 
@@ -289,7 +294,18 @@ function App() {
       />
 
       <main className="max-w-7xl mx-auto px-6 pt-28 pb-12">
-        {appMode === 'trends' ? (
+        {appMode === 'style' ? (
+          <StyleSetup
+            styleProfile={styleProfile}
+            styleSource={styleSource}
+            selectedStyleCreator={selectedStyleCreator}
+            savedCreators={savedCreators}
+            onSaveOwn={saveOwnStyle}
+            onUseCreator={useCreatorStyle}
+            onUseMix={useMixedStyle}
+            onClear={clearStyle}
+          />
+        ) : appMode === 'trends' ? (
           <TrendsTab
             savedCreators={savedCreators}
             onCreatePost={({ topic, creator, trendContext }) => {

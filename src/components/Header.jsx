@@ -65,6 +65,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
               { value: 'creator-report', label: 'Creator-Analyse' },
               { value: 'saved-creators', label: 'Meine Creators' },
               { value: 'trends', label: 'Trends' },
+              { value: 'style', label: 'Mein Stil' },
             ].map((tab) => (
               <button
                 key={tab.value}
