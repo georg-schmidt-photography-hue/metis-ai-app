@@ -177,7 +177,7 @@ export default function LandingPage({ onStart }) {
         </button>
 
         {/* Platform Switches */}
-        <div className="flex items-center gap-8 mt-12">
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 mt-12">
           <PlatformSwitch label="LinkedIn" defaultOn={true} />
           <PlatformSwitch label="YouTube" />
           <PlatformSwitch label="Twitter / X" />
