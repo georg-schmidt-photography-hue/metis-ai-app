@@ -153,10 +153,6 @@ export default function LandingPage({ onStart }) {
           style={{
             color: 'rgba(255,255,255,0.85)',
             textShadow: '0 1px 16px rgba(0,0,0,1), 0 2px 32px rgba(0,0,0,0.9)',
-            background: 'rgba(0,0,0,0.25)',
-            borderRadius: 8,
-            padding: '8px 16px',
-            backdropFilter: 'blur(4px)',
           }}
         >
           KI-gestützte Suche nach Top-Beiträgen, Analyse von Erfolgsmustern
