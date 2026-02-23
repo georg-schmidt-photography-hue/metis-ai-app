@@ -42,30 +42,21 @@ async function fetchPlatformTrends(platform, prompt) {
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end()
 
-  const [google, reddit, twitter, youtube, instagram] = await Promise.all([
+  const [google, reddit] = await Promise.all([
 
     fetchPlatformTrends('google', `5 meistgesuchte Themen auf Google Deutschland heute. Nur JSON-Array:
 [{"title":"Thema","category":"Politik|Wirtschaft|Sport|Tech|Lifestyle"}]`),
 
     fetchPlatformTrends('reddit', `5 trending Diskussionen in deutschen Reddit-Communitys (r/de, r/germany, r/finanzen) heute. Typisch Reddit: Alltag, Humor, Kontroversen. Nur JSON-Array:
 [{"title":"Thema","subreddit":"de"}]`),
-
-    fetchPlatformTrends('twitter', `5 trending Hashtags auf X/Twitter Deutschland heute. Typisch: Breaking News, Politik-Debatten, Memes. Nur JSON-Array:
-[{"title":"#Hashtag","context":"Grund in 5 Worten"}]`),
-
-    fetchPlatformTrends('youtube', `5 trending Videos oder Themen auf YouTube Deutschland heute. Typisch: Musik, Gaming, News, Entertainment. Nur JSON-Array:
-[{"title":"Video-Titel","channel":"Kanal","type":"Musik|Gaming|News|Entertainment"}]`),
-
-    fetchPlatformTrends('instagram', `5 trending Hashtags oder Themen auf Instagram Deutschland heute. Typisch: Lifestyle, Mode, Food, Fitness, Reels. Nur JSON-Array:
-[{"title":"#hashtag","context":"Kontext in 5 Worten"}]`),
   ])
 
   res.json({
     google,
     reddit,
-    twitter,
-    youtube,
-    instagram,
+    twitter: [],
+    youtube: [],
+    instagram: [],
     date: new Date().toLocaleDateString('de-DE'),
     time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
   })
