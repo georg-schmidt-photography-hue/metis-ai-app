@@ -34,9 +34,16 @@ async function fetchPlatformTrends(platform, prompt) {
 
     const parsed = JSON.parse(cleaned.slice(start, end + 1))
     if (!Array.isArray(parsed)) return []
-    return parsed.slice(0, 5).map(item =>
-      typeof item === 'string' ? { title: item } : item
-    )
+    return parsed.slice(0, 5).map(item => {
+      if (typeof item === 'string') {
+        try { item = JSON.parse(item) } catch { return { title: item } }
+      }
+      // unwrap double-encoded title: {"title":"{\"title\":\"X\"}"}
+      if (item?.title && typeof item.title === 'string' && item.title.trim().startsWith('{')) {
+        try { const inner = JSON.parse(item.title); return { ...item, ...inner } } catch {}
+      }
+      return item
+    })
   } catch (e) {
     console.error(`${platform} fetch failed:`, e.message)
     return []
