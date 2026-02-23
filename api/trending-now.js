@@ -50,11 +50,11 @@ export default async function handler(req, res) {
 
   const [google, reddit] = await Promise.all([
 
-    fetchPlatformTrends('google', `5 meistgesuchte Themen auf Google Deutschland heute. Nur JSON-Array:
-[{"title":"Thema","category":"Politik|Wirtschaft|Sport|Tech|Lifestyle"}]`),
+    fetchPlatformTrends('google', `Liste die 5 meistgesuchten Themen auf Google Deutschland heute. Antworte NUR mit diesem JSON-Array, exakt dieses Format:
+[{"title":"Thema 1","category":"Sport"},{"title":"Thema 2","category":"Politik"},{"title":"Thema 3","category":"Tech"},{"title":"Thema 4","category":"Wirtschaft"},{"title":"Thema 5","category":"Lifestyle"}]`),
 
-    fetchPlatformTrends('reddit', `5 trending Diskussionen in deutschen Reddit-Communitys (r/de, r/germany, r/finanzen) heute. Typisch Reddit: Alltag, Humor, Kontroversen. Nur JSON-Array:
-[{"title":"Thema","subreddit":"de"}]`),
+    fetchPlatformTrends('reddit', `Liste 5 trending Diskussionen in deutschen Reddit-Communitys heute. Antworte NUR mit diesem JSON-Array, exakt dieses Format:
+[{"title":"Titel 1","subreddit":"de"},{"title":"Titel 2","subreddit":"germany"},{"title":"Titel 3","subreddit":"finanzen"},{"title":"Titel 4","subreddit":"de"},{"title":"Titel 5","subreddit":"germany"}]`),
   ])
 
   res.json({
