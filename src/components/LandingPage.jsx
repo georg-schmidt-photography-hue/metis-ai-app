@@ -1,15 +1,11 @@
-import { useState } from 'react'
 import AbstractRings from './ui/AbstractRings'
 
 const BRAND = '#D4952B'
 
 function PlatformSwitch({ label, defaultOn = false }) {
-  const [on, setOn] = useState(defaultOn)
+  const on = defaultOn
   return (
-    <div
-      className="flex items-center gap-3 cursor-pointer select-none"
-      onClick={() => setOn(v => !v)}
-    >
+    <div className="flex items-center gap-3 select-none">
       {/* 3D Track */}
       <div
         style={{
