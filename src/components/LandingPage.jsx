@@ -2,6 +2,86 @@ import AbstractRings from './ui/AbstractRings'
 
 const BRAND = '#D4952B'
 
+function PlatformSwitch({ label, defaultOn = false }) {
+  const on = defaultOn
+  return (
+    <div className="flex items-center gap-3 select-none">
+      {/* 3D Track */}
+      <div
+        style={{
+          position: 'relative',
+          width: 46,
+          height: 24,
+          borderRadius: 12,
+          flexShrink: 0,
+          transition: 'background 0.35s ease, box-shadow 0.35s ease',
+          background: on
+            ? 'linear-gradient(180deg, #c07d1c 0%, #D4952B 40%, #e8a830 100%)'
+            : 'linear-gradient(180deg, #1a1a1a 0%, #252525 100%)',
+          boxShadow: on
+            ? '0 2px 10px rgba(212,149,43,0.45), 0 0 20px rgba(212,149,43,0.2), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 2px 4px rgba(0,0,0,0.2)'
+            : '0 2px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04), inset 0 2px 6px rgba(0,0,0,0.5)',
+        }}
+      >
+        {/* 3D Knob */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 3,
+            left: 3,
+            width: 18,
+            height: 18,
+            borderRadius: '50%',
+            background: 'linear-gradient(170deg, #ffffff 0%, #c8c8c8 100%)',
+            boxShadow: '0 3px 8px rgba(0,0,0,0.55), 0 1px 3px rgba(0,0,0,0.4), inset 0 -2px 4px rgba(0,0,0,0.12)',
+            transform: on ? 'translateX(22px)' : 'translateX(0)',
+            transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Glanzpunkt */}
+          <div style={{
+            position: 'absolute',
+            top: 2,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 8,
+            height: 4,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.85)',
+            filter: 'blur(1px)',
+          }} />
+        </div>
+      </div>
+
+      {/* Glow Dot */}
+      <div style={{
+        width: 6,
+        height: 6,
+        borderRadius: '50%',
+        flexShrink: 0,
+        background: on ? BRAND : '#2a2a2a',
+        transition: 'background 0.35s ease, box-shadow 0.35s ease',
+        boxShadow: on
+          ? '0 0 6px 2px rgba(212,149,43,0.7), 0 0 14px 4px rgba(212,149,43,0.35), 0 0 28px 8px rgba(212,149,43,0.15)'
+          : 'none',
+        animation: on ? 'glowPulse 2s ease-in-out infinite' : 'none',
+      }} />
+
+      {/* Label */}
+      <span style={{
+        fontSize: 10,
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        color: on ? 'rgba(255,255,255,0.8)' : '#444',
+        transition: 'color 0.3s',
+      }}>
+        {label}
+      </span>
+    </div>
+  )
+}
+
 export default function LandingPage({ onStart }) {
   return (
     <div className="h-screen bg-[#0a0a0a] relative overflow-hidden flex flex-col">
@@ -69,8 +149,11 @@ export default function LandingPage({ onStart }) {
 
         {/* Subtitle */}
         <p
-          className="text-base md:text-lg text-white/60 mb-8 text-center max-w-lg leading-relaxed"
-          style={{ textShadow: '0 1px 12px rgba(0,0,0,0.9)' }}
+          className="text-base md:text-lg mb-8 text-center max-w-lg leading-relaxed"
+          style={{
+            color: 'rgba(255,255,255,0.85)',
+            textShadow: '0 1px 16px rgba(0,0,0,1), 0 2px 32px rgba(0,0,0,0.9)',
+          }}
         >
           KI-gestützte Suche nach Top-Beiträgen, Analyse von Erfolgsmustern
           und Erstellung eigener Artikel.
@@ -92,18 +175,20 @@ export default function LandingPage({ onStart }) {
           </svg>
         </button>
 
-        {/* Platform pills */}
-        <div className="flex items-center gap-4 mt-12">
-          {['LinkedIn', 'YouTube', 'Twitter / X'].map((p) => (
-            <span
-              key={p}
-              className="text-sm px-5 py-2 rounded-full text-white/50 border border-white/20"
-            >
-              {p}
-            </span>
-          ))}
+        {/* Platform Switches */}
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 mt-12">
+          <PlatformSwitch label="LinkedIn" defaultOn={true} />
+          <PlatformSwitch label="YouTube" />
+          <PlatformSwitch label="Twitter / X" />
         </div>
       </div>
+
+      <style>{`
+        @keyframes glowPulse {
+          0%, 100% { box-shadow: 0 0 6px 2px rgba(212,149,43,0.7), 0 0 14px 4px rgba(212,149,43,0.35), 0 0 28px 8px rgba(212,149,43,0.15); }
+          50%       { box-shadow: 0 0 8px 3px rgba(212,149,43,0.9), 0 0 20px 6px rgba(212,149,43,0.5),  0 0 40px 12px rgba(212,149,43,0.2); }
+        }
+      `}</style>
     </div>
   )
 }
