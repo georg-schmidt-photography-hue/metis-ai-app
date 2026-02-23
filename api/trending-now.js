@@ -1,7 +1,7 @@
-async function fetchPlatformTrends(platform, prompt) {
+async function fetchTitles(platform, prompt) {
   try {
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 7000) // 7s max per call
+    const timeout = setTimeout(() => controller.abort(), 7000)
 
     const res = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
@@ -12,12 +12,9 @@ async function fetchPlatformTrends(platform, prompt) {
       },
       body: JSON.stringify({
         model: 'sonar',
-        max_tokens: 300,
+        max_tokens: 200,
         messages: [
-          {
-            role: 'system',
-            content: 'Antworte NUR mit einem JSON-Array. Kein Markdown, keine Erklärungen.',
-          },
+          { role: 'system', content: 'Antworte NUR mit einem JSON-Array aus Strings. Beispiel: ["Thema 1","Thema 2"]. Kein Markdown, keine Objekte, keine Erklärungen.' },
           { role: 'user', content: prompt },
         ],
       }),
@@ -26,26 +23,26 @@ async function fetchPlatformTrends(platform, prompt) {
 
     const data = await res.json()
     const raw = (data.choices?.[0]?.message?.content || '').trim()
-    const cleaned = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
+      .replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
 
-    const start = cleaned.indexOf('[')
-    const end = cleaned.lastIndexOf(']')
+    const start = raw.indexOf('[')
+    const end = raw.lastIndexOf(']')
     if (start === -1 || end === -1) return []
 
-    const parsed = JSON.parse(cleaned.slice(start, end + 1))
+    const parsed = JSON.parse(raw.slice(start, end + 1))
     if (!Array.isArray(parsed)) return []
-    return parsed.slice(0, 5).map(item => {
-      if (typeof item === 'string') {
-        try { item = JSON.parse(item) } catch { return { title: item } }
-      }
-      // unwrap double-encoded title: {"title":"{\"title\":\"X\"}"}
-      if (item?.title && typeof item.title === 'string' && item.title.trim().startsWith('{')) {
-        try { const inner = JSON.parse(item.title); return { ...item, ...inner } } catch {}
-      }
-      return item
-    })
+
+    // Normalize everything to { title: string }
+    return parsed.slice(0, 5)
+      .map(item => {
+        if (typeof item === 'string') return { title: item.replace(/^["']|["']$/g, '').trim() }
+        if (item?.title) return { title: String(item.title).trim() }
+        if (item?.name) return { title: String(item.name).trim() }
+        return null
+      })
+      .filter(item => item && item.title.length > 0)
   } catch (e) {
-    console.error(`${platform} fetch failed:`, e.message)
+    console.error(`${platform} failed:`, e.message)
     return []
   }
 }
@@ -53,14 +50,11 @@ async function fetchPlatformTrends(platform, prompt) {
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end()
 
-  // Run sequentially to stay within Vercel's 10s limit
-  const google = await fetchPlatformTrends('google',
-    `Nenne die 5 meistgesuchten Themen auf Google Deutschland heute als JSON-Array:
-[{"title":"Thema 1","category":"Sport"},{"title":"Thema 2","category":"Politik"},{"title":"Thema 3","category":"Tech"},{"title":"Thema 4","category":"Wirtschaft"},{"title":"Thema 5","category":"Lifestyle"}]`)
+  const google = await fetchTitles('google',
+    'Was sind die 5 meistgesuchten Themen auf Google in Deutschland heute? Nur ein JSON-Array aus 5 Strings: ["Thema1","Thema2","Thema3","Thema4","Thema5"]')
 
-  const reddit = await fetchPlatformTrends('reddit',
-    `Nenne 5 trending Themen auf Reddit Deutschland heute als JSON-Array:
-[{"title":"Titel 1","subreddit":"de"},{"title":"Titel 2","subreddit":"germany"},{"title":"Titel 3","subreddit":"finanzen"},{"title":"Titel 4","subreddit":"de"},{"title":"Titel 5","subreddit":"germany"}]`)
+  const reddit = await fetchTitles('reddit',
+    'Was sind 5 trending Diskussionsthemen auf Reddit in Deutschland heute? Nur ein JSON-Array aus 5 Strings: ["Thema1","Thema2","Thema3","Thema4","Thema5"]')
 
   res.setHeader('Cache-Control', 'no-store')
   res.json({
