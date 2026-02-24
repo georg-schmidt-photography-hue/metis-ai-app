@@ -119,8 +119,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
               </button>
             ))}
           </div>
-          {/* Zeile 1: Thema/Account + Suchleiste */}
-          <div className="flex items-center gap-3 max-w-3xl">
+          <div className="flex items-center gap-3 max-w-2xl">
             <div className="flex overflow-hidden flex-shrink-0" style={{border:'1px solid rgba(255,255,255,0.12)', borderRadius:999, background:'rgba(255,255,255,0.05)'}}>
               <button
                 type="button"
@@ -169,7 +168,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                       : `Name oder Company-URL (z.B. "Alex Hormozi" oder linkedin.com/company/...)`
                     : `${platforms.find(p => p.value === platform)?.label || ''} Themen suchen...`
                   }
-                  className="w-full pl-12 pr-24 py-2.5 text-sm focus:outline-none transition-all placeholder-[rgba(255,255,255,0.3)]"
+                  className="w-full pl-12 pr-20 py-2.5 text-sm focus:outline-none transition-all placeholder-[rgba(255,255,255,0.3)]"
                   style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:999, color:'rgba(255,255,255,0.9)'}}
                   disabled={isLoading}
                 />
@@ -188,16 +187,13 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                 )}
               </div>
             </form>
-          </div>
 
-          {/* Zeile 2: Filter-Buttons */}
-          <div className="flex items-center gap-2 pb-2">
             <div className="flex overflow-hidden flex-shrink-0" style={{border:'1px solid rgba(255,255,255,0.12)', borderRadius:999, background:'rgba(255,255,255,0.05)'}}>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onAccountFilterChange('top4weeks')}
-                style={{padding:'6px 14px', fontSize:10, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', whiteSpace:'nowrap', background: accountFilter === 'top4weeks' ? '#D4952B' : 'transparent', color: accountFilter === 'top4weeks' ? '#0a0a0a' : 'rgba(255,255,255,0.45)'}}
+                style={{padding:'8px 12px', fontSize:10, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', whiteSpace:'nowrap', background: accountFilter === 'top4weeks' ? '#D4952B' : 'transparent', color: accountFilter === 'top4weeks' ? '#0a0a0a' : 'rgba(255,255,255,0.45)'}}
               >
                 Top 4 Wochen
               </button>
@@ -205,18 +201,19 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onAccountFilterChange('last10days')}
-                style={{padding:'6px 14px', fontSize:10, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', whiteSpace:'nowrap', background: accountFilter === 'last10days' ? '#D4952B' : 'transparent', color: accountFilter === 'last10days' ? '#0a0a0a' : 'rgba(255,255,255,0.45)'}}
+                style={{padding:'8px 12px', fontSize:10, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', whiteSpace:'nowrap', background: accountFilter === 'last10days' ? '#D4952B' : 'transparent', color: accountFilter === 'last10days' ? '#0a0a0a' : 'rgba(255,255,255,0.45)'}}
               >
                 Letzte 10 Tage
               </button>
             </div>
 
+            {/* DE/EN Toggle */}
             <div className="flex overflow-hidden flex-shrink-0" style={{border:'1px solid rgba(255,255,255,0.12)', borderRadius:999, background:'rgba(255,255,255,0.05)'}}>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onTranslateChange(false)}
-                style={{padding:'6px 14px', fontSize:10, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', background: !translateDE ? 'rgba(255,255,255,0.12)' : 'transparent', color: !translateDE ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.4)'}}
+                style={{padding:'8px 12px', fontSize:10, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', background: !translateDE ? 'rgba(255,255,255,0.12)' : 'transparent', color: !translateDE ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.4)'}}
               >
                 Original
               </button>
@@ -224,7 +221,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onTranslateChange(true)}
-                style={{padding:'6px 14px', fontSize:10, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', background: translateDE ? 'rgba(255,255,255,0.12)' : 'transparent', color: translateDE ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.4)'}}
+                style={{padding:'8px 12px', fontSize:10, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', background: translateDE ? 'rgba(255,255,255,0.12)' : 'transparent', color: translateDE ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.4)'}}
               >
                 Deutsch
               </button>
