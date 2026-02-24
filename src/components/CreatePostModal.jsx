@@ -1,11 +1,16 @@
 import { useState } from 'react'
+import { useCreatorStorage } from '../hooks/useCreatorStorage'
 
-export default function CreatePostModal({ creator, onClose, prefillTopic, trendContext }) {
+export default function CreatePostModal({ creator: initialCreator, onClose, prefillTopic, trendContext }) {
+  const { savedCreators } = useCreatorStorage()
+  const [selectedCreator, setSelectedCreator] = useState(initialCreator || null)
   const [topic, setTopic] = useState(prefillTopic || '')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPost, setGeneratedPost] = useState('')
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState(null)
+
+  const creator = selectedCreator
 
   const handleGenerate = async () => {
     if (!topic.trim()) return
@@ -54,7 +59,7 @@ export default function CreatePostModal({ creator, onClose, prefillTopic, trendC
             </div>
             <div>
               <p className="text-sm font-semibold text-[#2D2B28]">
-                {creator ? `Post im Stil von ${creator.name}` : 'Post erstellen'}
+                {selectedCreator ? `Post im Stil von ${selectedCreator.name}` : 'Post erstellen'}
               </p>
               <p className="text-xs text-[#A39E93]">Gib ein Thema ein — der Post wird für LinkedIn geschrieben</p>
             </div>
@@ -80,30 +85,54 @@ export default function CreatePostModal({ creator, onClose, prefillTopic, trendC
             </div>
           )}
 
-          {/* Creator Style Preview */}
-          <div className="bg-[#F7F5F0] rounded-xl p-4 space-y-2">
-            <p className="text-[10px] text-[#A39E93] uppercase tracking-wider font-semibold">
-              {creator ? 'Gewählter Creator-Stil' : 'Kein Creator-Stil gewählt'}
-            </p>
-            {creator?.successFactor && (
-              <p className="text-xs text-[#4A4743] leading-relaxed">
-                <span className="font-semibold text-[#2D2B28]">Erfolgsfaktor: </span>
-                {creator.successFactor}
+          {/* Creator-Auswahl */}
+          {savedCreators.length > 0 ? (
+            <div>
+              <p className="text-[10px] text-[#A39E93] uppercase tracking-wider font-semibold mb-2">
+                Creator-Stil wählen (optional)
               </p>
-            )}
-            {!creator && (
-              <p className="text-xs text-[#A39E93]">Der Post wird ohne spezifischen Creator-Stil erstellt.</p>
-            )}
-            {creator?.contentPillars?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {creator.contentPillars.slice(0, 4).map((p) => (
-                  <span key={p.pillar} className="text-[10px] px-2 py-0.5 rounded-md bg-white border border-[#E8E4DD] text-[#6B6560]">
-                    {p.pillar}
-                  </span>
-                ))}
+              <div className="flex flex-wrap gap-2">
+                {savedCreators.map((c) => {
+                  const isSelected = selectedCreator?.id === c.id
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => setSelectedCreator(isSelected ? null : c)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
+                        borderRadius: 12, cursor: 'pointer', transition: 'all 0.15s',
+                        border: isSelected ? '1px solid #D4952B' : '1px solid #E8E4DD',
+                        background: isSelected ? 'rgba(212,149,43,0.08)' : '#fff',
+                      }}
+                    >
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#E8E4DD', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+                        {c.avatarUrl
+                          ? <img src={c.avatarUrl} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : <span style={{ fontSize: 11, fontWeight: 700, color: '#6B6560' }}>{c.name?.charAt(0)}</span>
+                        }
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: isSelected ? '#D4952B' : '#2D2B28' }}>
+                        {c.name}
+                      </span>
+                      {isSelected && (
+                        <span style={{ fontSize: 10, color: '#D4952B' }}>✓</span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
-            )}
-          </div>
+              {selectedCreator?.successFactor && (
+                <p className="text-xs text-[#4A4743] mt-2 leading-relaxed bg-[#F7F5F0] rounded-lg px-3 py-2">
+                  <span className="font-semibold text-[#2D2B28]">Stil: </span>
+                  {selectedCreator.successFactor}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="bg-[#F7F5F0] rounded-xl px-4 py-3 text-xs text-[#A39E93]">
+              Noch keine Creators gespeichert — analysiere einen Creator und speichere ihn für personalisierten Stil.
+            </div>
+          )}
 
           {/* Topic Input */}
           <div>
