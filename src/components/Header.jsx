@@ -37,15 +37,16 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#FFFDF9] border-b border-[#E8E4DD]">
+    <header className="fixed top-0 left-0 right-0 z-50" style={{background:'rgba(10,10,10,0.85)', borderBottom:'1px solid rgba(255,255,255,0.07)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)'}}>
       <div className="max-w-7xl mx-auto px-6">
         {/* Top row: Logo + App Mode Tabs */}
-        <div className="h-14 flex items-center gap-6">
+        <div className="h-14 flex items-center gap-3 min-w-0">
           <div className="flex-shrink-0 flex items-center gap-2">
             {onBackToLanding && (
               <button
                 onClick={onBackToLanding}
-                className="w-7 h-7 flex items-center justify-center text-[#A39E93] hover:text-[#2D2B28] hover:bg-[#F0EDE8] rounded-lg transition-all cursor-pointer"
+                className="w-7 h-7 flex items-center justify-center rounded-lg transition-all cursor-pointer"
+                style={{color:'rgba(255,255,255,0.4)'}}
                 title="Zur Startseite"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,47 +54,44 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                 </svg>
               </button>
             )}
-            <span className="text-xl font-bold text-[#2D2B28] tracking-tight">
+            <span className="text-xl font-bold tracking-widest flex-shrink-0" style={{color:'#D4952B', letterSpacing:'0.15em'}}>
               METIS AI
             </span>
           </div>
 
-          {/* Main Mode Tabs */}
-          <div className="flex items-center gap-1 bg-[#F0EDE8] rounded-xl p-1">
-            {[
-              { value: 'inspiration', label: 'Inspiration' },
-              { value: 'creator-report', label: 'Creator-Analyse' },
-              { value: 'saved-creators', label: 'Meine Creators' },
-              { value: 'trends', label: 'Trends' },
-              { value: 'style', label: 'Mein Stil' },
-            ].map((tab) => (
-              <button
-                key={tab.value}
-                type="button"
-                onClick={() => onAppModeChange(tab.value)}
-                className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  appMode === tab.value
-                    ? 'bg-white text-[#2D2B28] shadow-sm'
-                    : 'text-[#6B6560] hover:text-[#2D2B28]'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          {/* Main Mode Tabs — scrollable on mobile */}
+          <div className="flex-1 min-w-0 overflow-x-auto scrollbar-none">
+            <div className="flex items-center gap-1 p-1 w-max" style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:999}}>
+              {[
+                { value: 'inspiration', label: 'Inspiration' },
+                { value: 'creator-report', label: 'Creator-Analyse' },
+                { value: 'saved-creators', label: 'Meine Creators' },
+                { value: 'trends', label: 'Trends' },
+                { value: 'style', label: 'Mein Stil' },
+                { value: 'posts', label: 'Meine Posts' },
+                { value: 'calendar', label: 'Kalender' },
+              ].map((tab) => (
+                <button
+                  key={tab.value}
+                  type="button"
+                  onClick={() => onAppModeChange(tab.value)}
+                  style={{padding:'6px 14px', borderRadius:999, fontSize:12, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', transition:'all 0.2s', border: appMode === tab.value ? '1px solid rgba(212,149,43,0.3)' : '1px solid transparent', background: appMode === tab.value ? 'rgba(212,149,43,0.15)' : 'transparent', color: appMode === tab.value ? '#D4952B' : 'rgba(255,255,255,0.45)'}}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Platform tabs — only in inspiration mode */}
+          {/* Platform tabs — only in inspiration mode, hidden on mobile */}
           {appMode === 'inspiration' && (
-            <div className="flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-1 flex-shrink-0">
               {platforms.map((p) => (
                 <button
                   key={p.value}
                   onClick={() => onPlatformChange(p.value)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
-                    platform === p.value
-                      ? 'bg-[#FEF3C7] border-[#D97706] text-[#92400E]'
-                      : 'bg-white border-[#E8E4DD] text-[#6B6560] hover:bg-[#F7F5F0] hover:border-[#C4BFB6]'
-                  }`}
+                  className="flex items-center gap-1.5 cursor-pointer transition-all"
+                  style={{padding:'6px 14px', borderRadius:999, fontSize:11, fontWeight:600, border: platform === p.value ? '1px solid rgba(212,149,43,0.4)' : '1px solid rgba(255,255,255,0.12)', background: platform === p.value ? 'rgba(212,149,43,0.15)' : 'rgba(255,255,255,0.06)', color: platform === p.value ? '#D4952B' : 'rgba(255,255,255,0.5)'}}
                 >
                   {p.icon}
                   {p.label}
@@ -101,24 +99,33 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
               ))}
             </div>
           )}
-
-          <div className="flex-1" />
         </div>
 
         {/* Bottom row */}
         {appMode === 'saved-creators' || appMode === 'trends' ? null : appMode === 'inspiration' ? (
           /* Inspiration: Search mode toggle + Search bar */
-          <div className="pb-3 flex items-center gap-3 max-w-2xl">
-            <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden flex-shrink-0">
+          <div className="pb-3 flex flex-col gap-2">
+          {/* Platform tabs on mobile (shown here, hidden in top row) */}
+          <div className="flex md:hidden items-center gap-1 overflow-x-auto scrollbar-none">
+            {platforms.map((p) => (
+              <button
+                key={p.value}
+                onClick={() => onPlatformChange(p.value)}
+                className="flex items-center gap-1.5 cursor-pointer transition-all whitespace-nowrap flex-shrink-0"
+                style={{padding:'6px 14px', borderRadius:999, fontSize:11, fontWeight:600, border: platform === p.value ? '1px solid rgba(212,149,43,0.4)' : '1px solid rgba(255,255,255,0.12)', background: platform === p.value ? 'rgba(212,149,43,0.15)' : 'rgba(255,255,255,0.06)', color: platform === p.value ? '#D4952B' : 'rgba(255,255,255,0.5)'}}
+              >
+                {p.icon}
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-3 max-w-2xl">
+            <div className="flex overflow-hidden flex-shrink-0" style={{border:'1px solid rgba(255,255,255,0.12)', borderRadius:999, background:'rgba(255,255,255,0.05)'}}>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onSearchModeChange('topic')}
-                className={`px-3 py-2 text-xs font-medium transition-all cursor-pointer ${
-                  searchMode === 'topic'
-                    ? 'bg-[#2D2B28] text-white'
-                    : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'
-                }`}
+                style={{padding:'8px 16px', fontSize:11, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', background: searchMode === 'topic' ? '#D4952B' : 'transparent', color: searchMode === 'topic' ? '#0a0a0a' : 'rgba(255,255,255,0.45)'}}
               >
                 Thema
               </button>
@@ -126,11 +133,7 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onSearchModeChange('account')}
-                className={`px-3 py-2 text-xs font-medium transition-all cursor-pointer ${
-                  searchMode === 'account'
-                    ? 'bg-[#2D2B28] text-white'
-                    : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'
-                }`}
+                style={{padding:'8px 16px', fontSize:11, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', background: searchMode === 'account' ? '#D4952B' : 'transparent', color: searchMode === 'account' ? '#0a0a0a' : 'rgba(255,255,255,0.45)'}}
               >
                 Account
               </button>
@@ -139,7 +142,8 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
             <form onSubmit={handleSubmit} className="flex-1">
               <div className="relative">
                 <svg
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A39E93]"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                  style={{color:'rgba(255,255,255,0.3)'}}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -164,17 +168,19 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                       : `Name oder Company-URL (z.B. "Alex Hormozi" oder linkedin.com/company/...)`
                     : `${platforms.find(p => p.value === platform)?.label || ''} Themen suchen...`
                   }
-                  className="w-full pl-12 pr-4 py-2.5 border border-[#E8E4DD] rounded-xl text-sm text-[#2D2B28] placeholder-[#A39E93] bg-[#F7F5F0] focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent focus:bg-white transition-all"
+                  className="w-full pl-12 pr-20 py-2.5 text-sm focus:outline-none transition-all placeholder-[rgba(255,255,255,0.3)]"
+                  style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:999, color:'rgba(255,255,255,0.9)'}}
                   disabled={isLoading}
                 />
                 {isLoading ? (
                   <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <div className="w-5 h-5 border-2 border-[#D97706] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-[#D4952B] border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : (
                   <button
                     type="submit"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#D97706] text-white text-xs font-medium rounded-lg hover:bg-[#B45309] transition-all cursor-pointer"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer transition-all"
+                    style={{padding:'6px 18px', background:'#fff', color:'#0a0a0a', borderRadius:999, fontSize:11, fontWeight:700, border:'none', boxShadow:'0 0 20px rgba(255,255,255,0.08)'}}
                   >
                     Suchen
                   </button>
@@ -182,16 +188,12 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
               </div>
             </form>
 
-            <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden flex-shrink-0">
+            <div className="flex overflow-hidden flex-shrink-0" style={{border:'1px solid rgba(255,255,255,0.12)', borderRadius:999, background:'rgba(255,255,255,0.05)'}}>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onAccountFilterChange('top4weeks')}
-                className={`px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap ${
-                  accountFilter === 'top4weeks'
-                    ? 'bg-[#D97706] text-white'
-                    : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'
-                }`}
+                style={{padding:'8px 12px', fontSize:10, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', whiteSpace:'nowrap', background: accountFilter === 'top4weeks' ? '#D4952B' : 'transparent', color: accountFilter === 'top4weeks' ? '#0a0a0a' : 'rgba(255,255,255,0.45)'}}
               >
                 Top 4 Wochen
               </button>
@@ -199,25 +201,19 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onAccountFilterChange('last10days')}
-                className={`px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap ${
-                  accountFilter === 'last10days'
-                    ? 'bg-[#D97706] text-white'
-                    : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'
-                }`}
+                style={{padding:'8px 12px', fontSize:10, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', whiteSpace:'nowrap', background: accountFilter === 'last10days' ? '#D4952B' : 'transparent', color: accountFilter === 'last10days' ? '#0a0a0a' : 'rgba(255,255,255,0.45)'}}
               >
                 Letzte 10 Tage
               </button>
             </div>
 
             {/* DE/EN Toggle */}
-            <div className="flex rounded-lg border border-[#E8E4DD] overflow-hidden flex-shrink-0">
+            <div className="flex overflow-hidden flex-shrink-0" style={{border:'1px solid rgba(255,255,255,0.12)', borderRadius:999, background:'rgba(255,255,255,0.05)'}}>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onTranslateChange(false)}
-                className={`px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer ${
-                  !translateDE ? 'bg-[#2D2B28] text-white' : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'
-                }`}
+                style={{padding:'8px 12px', fontSize:10, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', background: !translateDE ? 'rgba(255,255,255,0.12)' : 'transparent', color: !translateDE ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.4)'}}
               >
                 Original
               </button>
@@ -225,13 +221,12 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onTranslateChange(true)}
-                className={`px-2.5 py-2 text-[11px] font-medium transition-all cursor-pointer ${
-                  translateDE ? 'bg-[#2D2B28] text-white' : 'bg-white text-[#6B6560] hover:bg-[#F7F5F0]'
-                }`}
+                style={{padding:'8px 12px', fontSize:10, fontWeight:600, cursor:'pointer', transition:'all 0.2s', borderRadius:999, border:'none', background: translateDE ? 'rgba(255,255,255,0.12)' : 'transparent', color: translateDE ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.4)'}}
               >
                 Deutsch
               </button>
             </div>
+          </div>
           </div>
         ) : appMode === 'creator-report' ? (
           /* Creator Report: simple username input */
@@ -239,7 +234,8 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
             <form onSubmit={handleCreatorSubmit}>
               <div className="relative">
                 <svg
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A39E93]"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                  style={{color:'rgba(255,255,255,0.3)'}}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -251,17 +247,19 @@ export default function Header({ onSearch, isLoading, platform, onPlatformChange
                   value={creatorInput}
                   onChange={(e) => setCreatorInput(e.target.value)}
                   placeholder='Name des Creators (z.B. "Clare Kitching") oder Firmen-URL'
-                  className="w-full pl-12 pr-4 py-2.5 border border-[#E8E4DD] rounded-xl text-sm text-[#2D2B28] placeholder-[#A39E93] bg-[#F7F5F0] focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent focus:bg-white transition-all"
+                  className="w-full pl-12 pr-20 py-2.5 text-sm focus:outline-none transition-all placeholder-[rgba(255,255,255,0.3)]"
+                  style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:999, color:'rgba(255,255,255,0.9)'}}
                   disabled={isAnalyzing}
                 />
                 {isAnalyzing ? (
                   <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <div className="w-5 h-5 border-2 border-[#D97706] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-[#D4952B] border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : (
                   <button
                     type="submit"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#D97706] text-white text-xs font-medium rounded-lg hover:bg-[#B45309] transition-all cursor-pointer"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer transition-all"
+                    style={{padding:'6px 18px', background:'#fff', color:'#0a0a0a', borderRadius:999, fontSize:11, fontWeight:700, border:'none', boxShadow:'0 0 20px rgba(255,255,255,0.08)'}}
                   >
                     Analysieren
                   </button>

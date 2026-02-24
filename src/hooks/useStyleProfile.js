@@ -1,50 +1,104 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { supabase } from '../lib/supabase'
 
 const STORAGE_KEY = 'metis_style_profile'
 
+function getSessionId() {
+  let id = localStorage.getItem('metis_session_id')
+  if (!id) {
+    id = 'sess_' + Math.random().toString(36).slice(2) + Date.now().toString(36)
+    localStorage.setItem('metis_session_id', id)
+  }
+  return id
+}
+
+const SESSION_ID = getSessionId()
+
 export function useStyleProfile() {
   const [styleProfile, setStyleProfile] = useState(null)
-  const [styleSource, setStyleSource] = useState('none') // 'none' | 'own' | 'creator'
+  const [styleSource, setStyleSource] = useState('none')
   const [selectedStyleCreator, setSelectedStyleCreator] = useState(null)
+  const useSupabase = useRef(true)
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        setStyleProfile(parsed.profile || null)
-        setStyleSource(parsed.source || 'own')
+    async function load() {
+      try {
+        const { data, error } = await supabase
+          .from('style_profiles')
+          .select('*')
+          .eq('session_id', SESSION_ID)
+          .maybeSingle()
+
+        if (error) throw error
+        if (data) {
+          setStyleProfile(data.profile || null)
+          setStyleSource(data.source || 'none')
+          setSelectedStyleCreator(data.selected_creator || null)
+        }
+        useSupabase.current = true
+      } catch (_) {
+        useSupabase.current = false
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY)
+          if (saved) {
+            const parsed = JSON.parse(saved)
+            setStyleProfile(parsed.profile || null)
+            setStyleSource(parsed.source || 'own')
+            setSelectedStyleCreator(parsed.selectedCreator || null)
+          }
+        } catch {}
       }
-    } catch {}
+    }
+    load()
   }, [])
 
+  const persist = async (source, profile, creator) => {
+    if (useSupabase.current) {
+      try {
+        await supabase.from('style_profiles').upsert({
+          session_id: SESSION_ID,
+          source,
+          profile: profile || null,
+          selected_creator: creator || null,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'session_id' })
+      } catch (_) {
+        useSupabase.current = false
+      }
+    }
+    if (!useSupabase.current) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ source, profile, selectedCreator: creator }))
+    }
+  }
+
   const saveOwnStyle = (profile) => {
-    const data = { profile, source: 'own' }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
     setStyleProfile(profile)
     setStyleSource('own')
     setSelectedStyleCreator(null)
+    persist('own', profile, null)
   }
 
   const useCreatorStyle = (creator) => {
     setSelectedStyleCreator(creator)
     setStyleSource('creator')
+    persist('creator', null, creator)
   }
 
   const useMixedStyle = (ownProfile, creator) => {
     setStyleProfile(ownProfile)
     setSelectedStyleCreator(creator)
     setStyleSource('mix')
+    persist('mix', ownProfile, creator)
   }
 
   const clearStyle = () => {
-    localStorage.removeItem(STORAGE_KEY)
     setStyleProfile(null)
     setStyleSource('none')
     setSelectedStyleCreator(null)
+    persist('none', null, null)
+    localStorage.removeItem(STORAGE_KEY)
   }
 
-  // Build the style instruction string to inject into prompts
   const buildStyleInstruction = () => {
     if (styleSource === 'none') return null
 

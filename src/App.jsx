@@ -8,8 +8,11 @@ import CreatorReport from './components/CreatorReport'
 import SavedCreators from './components/SavedCreators'
 import CreatePostModal from './components/CreatePostModal'
 import TrendsTab from './components/TrendsTab'
+import PostArchive from './components/PostArchive'
+import PostCalendar from './components/PostCalendar'
 import { useCreatorStorage } from './hooks/useCreatorStorage'
 import { useStyleProfile } from './hooks/useStyleProfile'
+import { usePostArchive } from './hooks/usePostArchive'
 import StyleSetup from './components/StyleSetup'
 
 function App() {
@@ -17,6 +20,7 @@ function App() {
   const [appMode, setAppMode] = useState('inspiration') // 'inspiration' | 'creator-report' | 'saved-creators' | 'trends'
   const { savedCreators, saveCreator, deleteCreator, isCreatorSaved } = useCreatorStorage()
   const { styleProfile, styleSource, selectedStyleCreator, saveOwnStyle, useCreatorStyle, useMixedStyle, clearStyle, buildStyleInstruction } = useStyleProfile()
+  const { savedPosts, savePost, deletePost, updatePost } = usePostArchive()
   const [postModalCreator, setPostModalCreator] = useState(null)
   const [postModalPrefill, setPostModalPrefill] = useState(null)
   const [postModalTrendContext, setPostModalTrendContext] = useState(null)
@@ -274,7 +278,15 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0]">
+    <div className="min-h-screen bg-[#0a0a0a]">
+      {/* Background rings */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div style={{ position:'absolute', width:600, height:600, top:-200, right:-200, borderRadius:'50%', border:'1px solid rgba(212,149,43,0.07)' }} />
+        <div style={{ position:'absolute', width:900, height:900, top:-350, right:-350, borderRadius:'50%', border:'1px solid rgba(212,149,43,0.04)' }} />
+        <div style={{ position:'absolute', width:1200, height:1200, top:-500, right:-500, borderRadius:'50%', border:'1px solid rgba(212,149,43,0.025)' }} />
+        <div style={{ position:'absolute', width:400, height:400, bottom:-150, left:-100, borderRadius:'50%', border:'1px solid rgba(212,149,43,0.04)' }} />
+      </div>
+      <style>{`@keyframes glowPulse{0%,100%{box-shadow:0 0 6px 2px rgba(212,149,43,0.7),0 0 14px 4px rgba(212,149,43,0.35),0 0 28px 8px rgba(212,149,43,0.15)}50%{box-shadow:0 0 8px 3px rgba(212,149,43,0.9),0 0 20px 6px rgba(212,149,43,0.5),0 0 40px 12px rgba(212,149,43,0.2)}}`}</style>
       <Header
         onSearch={handleSearch}
         isLoading={isLoading}
@@ -293,8 +305,18 @@ function App() {
         onTranslateChange={setTranslateDE}
       />
 
-      <main className="max-w-7xl mx-auto px-6 pt-28 pb-12">
-        {appMode === 'style' ? (
+      <main className="max-w-7xl mx-auto px-6 pt-28 pb-12 relative z-10">
+        {appMode === 'posts' ? (
+          <PostArchive
+            savedPosts={savedPosts}
+            onDelete={deletePost}
+            onEdit={updatePost}
+          />
+        ) : appMode === 'calendar' ? (
+          <PostCalendar
+            savedPosts={savedPosts}
+          />
+        ) : appMode === 'style' ? (
           <StyleSetup
             styleProfile={styleProfile}
             styleSource={styleSource}
@@ -346,6 +368,7 @@ function App() {
                   isRefining={step === 'refining'}
                   styleProfile={styleProfile}
                   topPosts={topPosts}
+                  onSavePost={(content) => savePost({ content, searchTerm, platform })}
                 />
               ) : (
                 <ContentOutput

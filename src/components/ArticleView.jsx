@@ -144,10 +144,69 @@ function PreviewContent({ content }) {
   )
 }
 
-export default function ArticleView({ content, platform, onBack, onContentChange, isRefining, styleProfile, topPosts }) {
+function LinkedInPreview({ content }) {
+  const [expanded, setExpanded] = useState(false)
+  if (!content) return null
+
+  const lines = content.split('\n')
+  const CUTOFF = 3
+  const visibleLines = expanded ? lines : lines.slice(0, CUTOFF)
+  const hasMore = lines.length > CUTOFF
+
+  return (
+    <div className="max-w-[560px] mx-auto bg-white border border-[#E0DFDC] rounded-xl overflow-hidden shadow-sm">
+      {/* Header */}
+      <div className="p-4 flex items-start gap-3">
+        <div className="w-12 h-12 rounded-full bg-[#E8E4DD] flex items-center justify-center flex-shrink-0">
+          <svg className="w-6 h-6 text-[#A39E93]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-[#191919]">Dein Name</p>
+          <p className="text-xs text-[#666666]">Deine Headline · 1. Kontaktgrad</p>
+          <p className="text-[11px] text-[#666666]">Gerade · <svg className="inline w-3 h-3 fill-[#666666]" viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm3.5 7H9V4.5a1 1 0 00-2 0V8a1 1 0 001 1h3.5a1 1 0 000-2z"/></svg></p>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="px-4 pb-3">
+        <p className="text-sm text-[#191919] leading-relaxed whitespace-pre-wrap">
+          {visibleLines.join('\n')}
+          {!expanded && hasMore && '…'}
+        </p>
+        {hasMore && (
+          <button
+            onClick={() => setExpanded(e => !e)}
+            className="text-xs font-semibold text-[#666666] hover:text-[#191919] mt-1 cursor-pointer"
+          >
+            {expanded ? 'Weniger anzeigen' : 'Mehr anzeigen'}
+          </button>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 py-2 border-t border-[#E0DFDC] flex items-center gap-4">
+        {[
+          { icon: '👍', label: 'Gefällt mir' },
+          { icon: '💬', label: 'Kommentieren' },
+          { icon: '↗️', label: 'Weiterleiten' },
+        ].map(btn => (
+          <button key={btn.label} className="flex items-center gap-1 text-xs text-[#666666] hover:text-[#191919] py-2 cursor-pointer">
+            <span>{btn.icon}</span>
+            <span className="hidden sm:inline">{btn.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default function ArticleView({ content, platform, onBack, onContentChange, isRefining, styleProfile, topPosts, onSavePost }) {
   const [activeTab, setActiveTab] = useState('preview')
   const [editedContent, setEditedContent] = useState(content)
   const [copied, setCopied] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState(null)
   const [analyzeError, setAnalyzeError] = useState(null)
@@ -250,6 +309,14 @@ export default function ArticleView({ content, platform, onBack, onContentChange
               <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg> Virality Score</>
             )}
           </button>
+          {onSavePost && (
+            <button
+              onClick={async () => { await onSavePost(editedContent); setSaved(true); setTimeout(() => setSaved(false), 2000) }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#E8E4DD] text-[#6B6560] hover:bg-[#F7F5F0] hover:text-[#2D2B28] transition-all cursor-pointer"
+            >
+              {saved ? '✓ Gespeichert' : 'Speichern'}
+            </button>
+          )}
           <button
             onClick={handleCopy}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#E8E4DD] text-[#6B6560] hover:bg-[#F7F5F0] hover:text-[#2D2B28] transition-all cursor-pointer"
@@ -280,26 +347,23 @@ export default function ArticleView({ content, platform, onBack, onContentChange
 
       {/* Edit / Preview tabs */}
       <div className="flex items-center gap-1 mb-4 border-b border-[#E8E4DD]">
-        <button
-          onClick={() => setActiveTab('preview')}
-          className={`px-4 py-2 text-xs font-medium transition-all cursor-pointer border-b-2 -mb-px ${
-            activeTab === 'preview'
-              ? 'border-[#D97706] text-[#D97706]'
-              : 'border-transparent text-[#8A8578] hover:text-[#2D2B28]'
-          }`}
-        >
-          Vorschau
-        </button>
-        <button
-          onClick={() => setActiveTab('edit')}
-          className={`px-4 py-2 text-xs font-medium transition-all cursor-pointer border-b-2 -mb-px ${
-            activeTab === 'edit'
-              ? 'border-[#D97706] text-[#D97706]'
-              : 'border-transparent text-[#8A8578] hover:text-[#2D2B28]'
-          }`}
-        >
-          Bearbeiten
-        </button>
+        {[
+          { id: 'preview', label: 'Vorschau' },
+          { id: 'linkedin', label: 'LinkedIn-Ansicht' },
+          { id: 'edit', label: 'Bearbeiten' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 text-xs font-medium transition-all cursor-pointer border-b-2 -mb-px ${
+              activeTab === tab.id
+                ? 'border-[#D97706] text-[#D97706]'
+                : 'border-transparent text-[#8A8578] hover:text-[#2D2B28]'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {analyzeError && (
@@ -316,6 +380,10 @@ export default function ArticleView({ content, platform, onBack, onContentChange
           <div className="h-4 bg-[#E8E4DD] rounded-lg w-3/4" />
           <div className="h-4 bg-[#E8E4DD] rounded-lg w-full" />
           <div className="h-4 bg-[#E8E4DD] rounded-lg w-5/6" />
+        </div>
+      ) : activeTab === 'linkedin' ? (
+        <div className="min-h-[300px] bg-[#F3F2EF] rounded-xl p-4">
+          <LinkedInPreview content={displayContent} />
         </div>
       ) : activeTab === 'preview' ? (
         <div className="min-h-[300px]">

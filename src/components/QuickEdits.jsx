@@ -38,7 +38,7 @@ const sections = [
 function ChipGroup({ label, options, selected, onToggle }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-[#8A8578] uppercase tracking-wide mb-2">
+      <label className="block text-xs font-medium uppercase tracking-wide mb-2" style={{color:'rgba(255,255,255,0.3)'}}>
         {label}
       </label>
       <div className="flex flex-wrap gap-2">
@@ -49,11 +49,8 @@ function ChipGroup({ label, options, selected, onToggle }) {
               key={opt.value}
               type="button"
               onClick={() => onToggle(opt.value)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
-                isSelected
-                  ? 'bg-[#FEF3C7] border-[#D97706] text-[#92400E]'
-                  : 'bg-white border-[#E8E4DD] text-[#6B6560] hover:bg-[#F7F5F0] hover:border-[#C4BFB6]'
-              }`}
+              className="text-xs font-medium cursor-pointer transition-all"
+              style={{padding:'6px 12px', borderRadius:999, border: isSelected ? '1px solid rgba(212,149,43,0.4)' : '1px solid rgba(255,255,255,0.1)', background: isSelected ? 'rgba(212,149,43,0.15)' : 'rgba(255,255,255,0.04)', color: isSelected ? '#D4952B' : 'rgba(255,255,255,0.45)'}}
             >
               {opt.label}
             </button>
@@ -76,8 +73,8 @@ export default function QuickEdits({ settings, onSettingsChange, step, onRefine,
   const showRefineButton = step === 'result'
 
   return (
-    <div className="bg-[#FFFDF9] border border-[#E8E4DD] rounded-xl p-5 shadow-sm">
-      <h2 className="text-sm font-semibold text-[#2D2B28] mb-5">Schnellbearbeitung</h2>
+    <div className="rounded-xl p-5" style={{background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)'}}>
+      <h2 className="text-sm font-semibold mb-5" style={{color:'rgba(255,255,255,0.85)'}}>Schnellbearbeitung</h2>
       <div className="space-y-5">
         {sections.map((section) => (
           <ChipGroup
@@ -94,7 +91,8 @@ export default function QuickEdits({ settings, onSettingsChange, step, onRefine,
         <button
           onClick={onRefine}
           disabled={isLoading}
-          className="w-full mt-6 py-2.5 px-4 bg-[#D97706] hover:bg-[#B45309] disabled:bg-[#D4A574] text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed"
+          className="w-full mt-6 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{padding:'12px 16px', borderRadius:999, background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.15)', color:'rgba(255,255,255,0.7)', fontSize:13, fontWeight:600}}
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">
