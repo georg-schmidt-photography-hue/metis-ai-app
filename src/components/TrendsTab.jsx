@@ -153,6 +153,13 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
   const [trendingNow, setTrendingNow] = useState(null)
   const [trendingLoading, setTrendingLoading] = useState(true)
   const [activeChip, setActiveChip] = useState(DEFAULT_KEYWORD)
+  const chipsRef = useRef(null)
+
+  const scrollChips = (dir) => {
+    if (chipsRef.current) {
+      chipsRef.current.scrollBy({ left: dir * 220, behavior: 'smooth' })
+    }
+  }
 
   // Trending-Now laden
   useEffect(() => {
@@ -242,72 +249,60 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
             <div className="w-3.5 h-3.5 border-2 border-[#D4952B] border-t-transparent rounded-full animate-spin" />
             Lädt aktuelle Trends…
           </div>
-        ) : trendingChips.length > 0 ? (
-          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-none">
-            {trendingChips.slice(0, 20).map((chip, i) => {
-              const isActive = activeChip === chip.label
-              const badge = trendBadge(chip.item)
-              return (
-                <button
-                  key={i}
-                  onClick={() => handleSearch(chip.label)}
-                  disabled={isLoading}
-                  style={{
-                    flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '7px 14px', borderRadius: 999, fontSize: 12, fontWeight: 500,
-                    whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.15s', border: '1px solid',
-                    borderColor: isActive ? '#D4952B' : 'rgba(255,255,255,0.1)',
-                    background: isActive ? 'rgba(212,149,43,0.15)' : 'rgba(255,255,255,0.04)',
-                    color: isActive ? '#D4952B' : 'rgba(255,255,255,0.7)',
-                  }}
-                >
-                  {chip.label}
-                  {badge && (
-                    <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 999, fontWeight: 600, ...badge.style }}>
-                      {badge.label}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
         ) : (
-          /* Fallback: feste Chips wenn API nicht verfügbar */
-          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-none">
-            {[
-              { label: 'KI & Automatisierung', badge: '🔥 +42%', badgeStyle: { background: 'rgba(212,149,43,0.15)', color: '#D4952B' } },
-              { label: 'Remote Work', badge: '↑ Hoch', badgeStyle: { background: 'rgba(34,197,94,0.15)', color: '#22c55e' } },
-              { label: 'Leadership 2025', badge: 'Neu', badgeStyle: { background: 'rgba(99,102,241,0.15)', color: '#818cf8' } },
-              { label: 'Startup Funding', badge: '↑ Hoch', badgeStyle: { background: 'rgba(34,197,94,0.15)', color: '#22c55e' } },
-              { label: 'Personal Branding', badge: '🔥 Viral', badgeStyle: { background: 'rgba(212,149,43,0.15)', color: '#D4952B' } },
-              { label: 'B2B Marketing' },
-              { label: 'Nachhaltigkeit' },
-              { label: 'No-Code Tools', badge: 'Neu', badgeStyle: { background: 'rgba(99,102,241,0.15)', color: '#818cf8' } },
-            ].map((chip, i) => {
-              const isActive = activeChip === chip.label
-              return (
-                <button
-                  key={i}
-                  onClick={() => handleSearch(chip.label)}
-                  disabled={isLoading}
-                  style={{
-                    flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '7px 14px', borderRadius: 999, fontSize: 12, fontWeight: 500,
-                    whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.15s', border: '1px solid',
-                    borderColor: isActive ? '#D4952B' : 'rgba(255,255,255,0.1)',
-                    background: isActive ? 'rgba(212,149,43,0.15)' : 'rgba(255,255,255,0.04)',
-                    color: isActive ? '#D4952B' : 'rgba(255,255,255,0.7)',
-                  }}
-                >
-                  {chip.label}
-                  {chip.badge && (
-                    <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 999, fontWeight: 600, ...chip.badgeStyle }}>
-                      {chip.badge}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
+          <div style={{ position: 'relative' }}>
+            {/* Fade links */}
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 4, width: 32, background: 'linear-gradient(to right, rgba(18,18,18,0.9), transparent)', zIndex: 2, pointerEvents: 'none', borderRadius: '999px 0 0 999px' }} />
+            {/* Fade rechts */}
+            <div style={{ position: 'absolute', right: 32, top: 0, bottom: 4, width: 48, background: 'linear-gradient(to left, rgba(18,18,18,0.9), transparent)', zIndex: 2, pointerEvents: 'none' }} />
+            {/* Pfeil rechts */}
+            <button
+              onClick={() => scrollChips(1)}
+              style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-60%)', zIndex: 3, width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.7)' }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+
+            {/* Chip-Scroll */}
+            <div ref={chipsRef} style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, paddingRight: 36 }} className="scrollbar-none">
+              {(trendingChips.length > 0 ? trendingChips.slice(0, 25) : [
+                { label: 'KI & Automatisierung', item: { badge: 'hot' } },
+                { label: 'Remote Work', item: { change: '+32%' } },
+                { label: 'Leadership 2025', item: { type: 'Neu' } },
+                { label: 'Startup Funding', item: { change: '+18%' } },
+                { label: 'Personal Branding', item: { badge: 'Viral' } },
+                { label: 'B2B Marketing', item: {} },
+                { label: 'Nachhaltigkeit', item: {} },
+                { label: 'No-Code Tools', item: { type: 'Neu' } },
+                { label: 'ChatGPT für Business', item: {} },
+                { label: 'Digitalisierung', item: {} },
+              ]).map((chip, i) => {
+                const isActive = activeChip === chip.label
+                const badge = trendBadge(chip.item)
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleSearch(chip.label)}
+                    disabled={isLoading}
+                    style={{
+                      flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
+                      padding: '7px 14px', borderRadius: 999, fontSize: 12, fontWeight: 500,
+                      whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.15s', border: '1px solid',
+                      borderColor: isActive ? '#D4952B' : 'rgba(255,255,255,0.1)',
+                      background: isActive ? 'rgba(212,149,43,0.15)' : 'rgba(255,255,255,0.04)',
+                      color: isActive ? '#D4952B' : 'rgba(255,255,255,0.7)',
+                    }}
+                  >
+                    {chip.label}
+                    {badge && (
+                      <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 999, fontWeight: 600, ...badge.style }}>
+                        {badge.label}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
           </div>
         )}
       </div>
