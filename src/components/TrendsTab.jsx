@@ -41,24 +41,16 @@ function LineChart({ data, keyword, compareKeyword }) {
         }}
         onMouseLeave={() => setTooltip(null)}
       >
-        {/* Grid lines */}
         {[0, 25, 50, 75, 100].map(v => (
           <g key={v}>
             <line x1={PL} x2={W - PR} y1={yScale(v)} y2={yScale(v)} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
             <text x={PL - 4} y={yScale(v) + 3} textAnchor="end" fontSize="9" fill="rgba(255,255,255,0.25)">{v}</text>
           </g>
         ))}
-
-        {/* Area fill — compare */}
         {hasCompare && <path d={areaPath(cvals)} fill="#94A3B8" fillOpacity="0.06" />}
-        {/* Area fill — main */}
         <path d={areaPath(vals)} fill="#D4952B" fillOpacity="0.12" />
-
-        {/* Lines */}
         {hasCompare && <path d={linePath(cvals)} fill="none" stroke="rgba(148,163,184,0.7)" strokeWidth="2" strokeDasharray="5,3" />}
         <path d={linePath(vals)} fill="none" stroke="#D4952B" strokeWidth="2.5" />
-
-        {/* Hover dot */}
         {tooltip && (
           <>
             <line x1={xScale(tooltip.idx)} x2={xScale(tooltip.idx)} y1={PT} y2={H - PB} stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
@@ -70,16 +62,12 @@ function LineChart({ data, keyword, compareKeyword }) {
             )}
           </>
         )}
-
-        {/* X-axis labels */}
         {xLabels.map(idx => (
           <text key={idx} x={xScale(idx)} y={H - 4} textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.25)">
             {data[idx]?.date?.split(' ')[0]}
           </text>
         ))}
       </svg>
-
-      {/* Tooltip popup */}
       {tooltip && (
         <div
           className="fixed z-50 pointer-events-none text-white text-[11px] px-3 py-2 rounded-xl shadow-lg leading-relaxed"
@@ -132,14 +120,31 @@ function ScoreLabel({ score }) {
   )
 }
 
+const DEFAULT_KEYWORD = 'KI & Automatisierung'
+
 const SUGGESTED_TOPICS = [
   'Photovoltaik', 'Wärmepumpe', 'KI Mittelstand', 'Leadership',
   'Nachhaltigkeit', 'Elektroauto', 'Remote Work', 'Digitalisierung',
   'Energiekosten', 'Startup', 'Burnout', 'ChatGPT',
 ]
 
+// Badge-Varianten für Trending-Chips
+function trendBadge(item) {
+  if (!item) return null
+  if (item.change && (item.change.includes('+') || item.change.includes('%'))) {
+    return { label: item.change, style: { background: 'rgba(34,197,94,0.15)', color: '#22c55e' } }
+  }
+  if (item.type === 'Viral' || item.badge === 'Viral') {
+    return { label: '🔥 Viral', style: { background: 'rgba(212,149,43,0.15)', color: '#D4952B' } }
+  }
+  if (item.type === 'Neu' || item.badge === 'Neu') {
+    return { label: 'Neu', style: { background: 'rgba(99,102,241,0.15)', color: '#818cf8' } }
+  }
+  return null
+}
+
 export default function TrendsTab({ savedCreators, onCreatePost }) {
-  const [keyword, setKeyword] = useState('')
+  const [keyword, setKeyword] = useState(DEFAULT_KEYWORD)
   const [compareKeyword, setCompareKeyword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [trendData, setTrendData] = useState(null)
@@ -147,7 +152,9 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
   const [selectedCreator, setSelectedCreator] = useState(null)
   const [trendingNow, setTrendingNow] = useState(null)
   const [trendingLoading, setTrendingLoading] = useState(true)
+  const [activeChip, setActiveChip] = useState(DEFAULT_KEYWORD)
 
+  // Trending-Now laden
   useEffect(() => {
     fetch(`/api/trending-now?t=${Date.now()}`, { cache: 'no-store' })
       .then(r => r.json())
@@ -156,19 +163,25 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
       .finally(() => setTrendingLoading(false))
   }, [])
 
+  // Auto-Suche beim ersten Laden
+  useEffect(() => {
+    handleSearch(DEFAULT_KEYWORD)
+  }, [])
+
   const handleSearch = async (kw) => {
-    const term = kw || keyword
-    if (!term.trim()) return
+    const term = (kw || keyword).trim()
+    if (!term) return
     setIsLoading(true)
     setError(null)
     setTrendData(null)
     setKeyword(term)
+    setActiveChip(term)
 
     try {
       const res = await fetch('/api/trends', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keyword: term.trim(), compareWith: compareKeyword.trim() || null, geo: 'DE' }),
+        body: JSON.stringify({ keyword: term, compareWith: compareKeyword.trim() || null, geo: 'DE' }),
       })
       const text = await res.text()
       let data
@@ -182,6 +195,19 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
     }
   }
 
+  // Alle Trending-Chips aus API-Daten zusammenstellen
+  const trendingChips = []
+  if (trendingNow) {
+    const sources = ['google', 'reddit', 'twitter', 'youtube', 'instagram']
+    sources.forEach(src => {
+      (trendingNow[src] || []).forEach(item => {
+        if (item.title?.trim() && item.title !== 'Nicht verfügbar') {
+          trendingChips.push({ label: item.title.replace(/^#/, ''), source: src, item })
+        }
+      })
+    })
+  }
+
   const trendColor = trendData?.trend === 'rising'
     ? { background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e' }
     : trendData?.trend === 'falling'
@@ -191,108 +217,154 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
   const trendLabel = trendData?.trend === 'rising' ? '📈 Steigend'
     : trendData?.trend === 'falling' ? '📉 Fallend' : '➡️ Stabil'
 
-  const cardStyle = { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16 }
-  const cardStyleHighlight = { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(212,149,43,0.35)', borderRadius: 16 }
+  const card = { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16 }
+  const cardGold = { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(212,149,43,0.35)', borderRadius: 16 }
 
   return (
     <div className="space-y-4">
 
-      {/* Trending Now */}
-      <div style={cardStyle} className="p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', display: 'inline-block', animation: 'pulse 2s infinite' }} />
-          <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Aktuell trending in Deutschland
-          </p>
-          {trendingNow?.date && (
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginLeft: 'auto' }}>
-              {trendingNow.date} · {trendingNow.time} Uhr
+      {/* ── Trending-Chips ── */}
+      <div style={card} className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', display: 'inline-block', flexShrink: 0 }} className="animate-pulse" />
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Trending jetzt auf LinkedIn
             </span>
+          </div>
+          {trendingNow?.date && (
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>Letzte 7 Tage</span>
           )}
         </div>
 
         {trendingLoading ? (
           <div className="flex items-center gap-2" style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
             <div className="w-3.5 h-3.5 border-2 border-[#D4952B] border-t-transparent rounded-full animate-spin" />
-            Perplexity durchsucht alle Plattformen…
+            Lädt aktuelle Trends…
           </div>
-        ) : trendingNow && (trendingNow.google?.length || trendingNow.reddit?.length) ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-            {[
-              { key: 'google', label: 'Google', icon: '🔍', color: '#818cf8', subtitle: t => t.category },
-              { key: 'reddit', label: 'Reddit', icon: '🤖', color: '#fb923c', subtitle: t => t.subreddit ? `r/${t.subreddit}` : '' },
-              { key: 'twitter', label: 'X / Twitter', icon: '𝕏', color: 'rgba(255,255,255,0.7)', subtitle: t => t.context },
-              { key: 'youtube', label: 'YouTube', icon: '▶', color: '#f87171', subtitle: t => t.channel },
-              { key: 'instagram', label: 'Instagram', icon: '📸', color: '#f472b6', subtitle: t => t.context },
-            ].map(({ key, label, icon, color, subtitle }) => {
-              const items = trendingNow[key] || []
-              const validItems = items.filter(t => t.title?.trim() && t.title !== 'Nicht verfügbar')
-              if (!validItems.length) return null
+        ) : trendingChips.length > 0 ? (
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-none">
+            {trendingChips.slice(0, 20).map((chip, i) => {
+              const isActive = activeChip === chip.label
+              const badge = trendBadge(chip.item)
               return (
-                <div key={key} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12 }} className="p-3">
-                  <div className="flex items-center gap-1.5 mb-2.5">
-                    <span style={{ fontSize: 13, fontWeight: 700, color }}>{icon}</span>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {items.filter(t => t.title?.trim()).map((t, i) => (
-                      <button
-                        key={i}
-                        onClick={() => handleSearch(t.title.replace(/^#/, ''))}
-                        disabled={isLoading}
-                        style={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 8, padding: '6px 8px', borderRadius: 8, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(212,149,43,0.08)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                        className="disabled:opacity-50"
-                      >
-                        <span style={{ fontSize: 10, fontWeight: 700, color: '#D4952B', width: 14, flexShrink: 0, marginTop: 2 }}>{i + 1}</span>
-                        <div className="min-w-0">
-                          <p style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.8)', lineHeight: 1.3 }}>{t.title}</p>
-                          {subtitle(t) && (
-                            <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', marginTop: 2 }} className="truncate">{subtitle(t)}</p>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <button
+                  key={i}
+                  onClick={() => handleSearch(chip.label)}
+                  disabled={isLoading}
+                  style={{
+                    flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '7px 14px', borderRadius: 999, fontSize: 12, fontWeight: 500,
+                    whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.15s', border: '1px solid',
+                    borderColor: isActive ? '#D4952B' : 'rgba(255,255,255,0.1)',
+                    background: isActive ? 'rgba(212,149,43,0.15)' : 'rgba(255,255,255,0.04)',
+                    color: isActive ? '#D4952B' : 'rgba(255,255,255,0.7)',
+                  }}
+                >
+                  {chip.label}
+                  {badge && (
+                    <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 999, fontWeight: 600, ...badge.style }}>
+                      {badge.label}
+                    </span>
+                  )}
+                </button>
               )
             })}
           </div>
         ) : (
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Trending-Daten momentan nicht verfügbar — nutze die Suche unten</p>
+          /* Fallback: feste Chips wenn API nicht verfügbar */
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-none">
+            {[
+              { label: 'KI & Automatisierung', badge: '🔥 +42%', badgeStyle: { background: 'rgba(212,149,43,0.15)', color: '#D4952B' } },
+              { label: 'Remote Work', badge: '↑ Hoch', badgeStyle: { background: 'rgba(34,197,94,0.15)', color: '#22c55e' } },
+              { label: 'Leadership 2025', badge: 'Neu', badgeStyle: { background: 'rgba(99,102,241,0.15)', color: '#818cf8' } },
+              { label: 'Startup Funding', badge: '↑ Hoch', badgeStyle: { background: 'rgba(34,197,94,0.15)', color: '#22c55e' } },
+              { label: 'Personal Branding', badge: '🔥 Viral', badgeStyle: { background: 'rgba(212,149,43,0.15)', color: '#D4952B' } },
+              { label: 'B2B Marketing' },
+              { label: 'Nachhaltigkeit' },
+              { label: 'No-Code Tools', badge: 'Neu', badgeStyle: { background: 'rgba(99,102,241,0.15)', color: '#818cf8' } },
+            ].map((chip, i) => {
+              const isActive = activeChip === chip.label
+              return (
+                <button
+                  key={i}
+                  onClick={() => handleSearch(chip.label)}
+                  disabled={isLoading}
+                  style={{
+                    flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '7px 14px', borderRadius: 999, fontSize: 12, fontWeight: 500,
+                    whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.15s', border: '1px solid',
+                    borderColor: isActive ? '#D4952B' : 'rgba(255,255,255,0.1)',
+                    background: isActive ? 'rgba(212,149,43,0.15)' : 'rgba(255,255,255,0.04)',
+                    color: isActive ? '#D4952B' : 'rgba(255,255,255,0.7)',
+                  }}
+                >
+                  {chip.label}
+                  {chip.badge && (
+                    <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 999, fontWeight: 600, ...chip.badgeStyle }}>
+                      {chip.badge}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         )}
       </div>
 
-      {/* Search */}
-      <div style={cardStyle} className="p-5">
-        <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>
-          Google Trends — Deutschland
-        </p>
-        <div className="flex gap-2">
+      {/* ── Google Trends Chart ── */}
+      <div style={card} className="p-5">
+        <div className="flex items-center justify-between mb-1">
+          <div>
+            <div className="flex items-center gap-2">
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: '#D4952B', display: 'inline-block' }} />
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>Google Trends</span>
+            </div>
+            {trendData && (
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>
+                {trendData.keyword} · letzten 30 Tage
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {trendData && (
+              <>
+                <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: 'rgba(212,149,43,0.15)', color: '#D4952B' }}>
+                  ↑ {trendData.currentScore} Interesse
+                </span>
+                <span style={{ ...trendColor, padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600 }}>
+                  {trendLabel}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Suchzeile */}
+        <div className="flex gap-2 mt-3 mb-3">
           <div className="flex-1 flex gap-2">
             <div className="flex-1 relative">
               <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 10, height: 10, borderRadius: 2, background: '#D4952B' }} />
               <input
                 type="text"
                 value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSearch()}
+                onChange={e => setKeyword(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && !isLoading && handleSearch()}
                 placeholder='Thema, z.B. "Photovoltaik"'
-                style={{ width: '100%', paddingLeft: 32, paddingRight: 12, paddingTop: 10, paddingBottom: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, fontSize: 14, color: 'rgba(255,255,255,0.85)', outline: 'none' }}
+                style={{ width: '100%', paddingLeft: 32, paddingRight: 12, paddingTop: 9, paddingBottom: 9, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, fontSize: 13, color: 'rgba(255,255,255,0.85)', outline: 'none' }}
                 disabled={isLoading}
               />
             </div>
-            <div className="flex items-center text-xs flex-shrink-0" style={{ color: 'rgba(255,255,255,0.3)' }}>vs.</div>
+            <div className="flex items-center" style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>vs.</div>
             <div className="flex-1 relative">
               <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 10, height: 10, borderRadius: 2, background: '#94A3B8' }} />
               <input
                 type="text"
                 value={compareKeyword}
-                onChange={(e) => setCompareKeyword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSearch()}
+                onChange={e => setCompareKeyword(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && !isLoading && handleSearch()}
                 placeholder='Vergleich (optional)'
-                style={{ width: '100%', paddingLeft: 32, paddingRight: 12, paddingTop: 10, paddingBottom: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, fontSize: 14, color: 'rgba(255,255,255,0.85)', outline: 'none' }}
+                style={{ width: '100%', paddingLeft: 32, paddingRight: 12, paddingTop: 9, paddingBottom: 9, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, fontSize: 13, color: 'rgba(255,255,255,0.85)', outline: 'none' }}
                 disabled={isLoading}
               />
             </div>
@@ -300,7 +372,7 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
           <button
             onClick={() => handleSearch()}
             disabled={isLoading || !keyword.trim()}
-            style={{ padding: '10px 20px', background: keyword.trim() && !isLoading ? '#D4952B' : 'rgba(255,255,255,0.08)', color: keyword.trim() && !isLoading ? '#0a0a0a' : 'rgba(255,255,255,0.3)', border: 'none', borderRadius: 999, fontSize: 13, fontWeight: 700, cursor: keyword.trim() && !isLoading ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap', transition: 'all 0.2s' }}
+            style={{ padding: '9px 20px', background: keyword.trim() && !isLoading ? '#D4952B' : 'rgba(255,255,255,0.08)', color: keyword.trim() && !isLoading ? '#0a0a0a' : 'rgba(255,255,255,0.3)', border: 'none', borderRadius: 999, fontSize: 12, fontWeight: 700, cursor: keyword.trim() && !isLoading ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
@@ -311,47 +383,47 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
           </button>
         </div>
 
-        {/* Suggested topics */}
-        <div className="flex flex-wrap gap-2 mt-3">
-          {SUGGESTED_TOPICS.map((t) => (
-            <button
-              key={t}
-              onClick={() => handleSearch(t)}
-              disabled={isLoading}
-              style={{ padding: '6px 14px', fontSize: 11, borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.55)', cursor: 'pointer', transition: 'all 0.15s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(212,149,43,0.4)'; e.currentTarget.style.color = '#D4952B'; e.currentTarget.style.background = 'rgba(212,149,43,0.08)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
-              className="disabled:opacity-50"
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        {/* Chart */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-16 gap-3" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+            <div className="w-5 h-5 border-2 border-[#D4952B] border-t-transparent rounded-full animate-spin" />
+            Trend-Daten werden geladen…
+          </div>
+        )}
+        {trendData?.timelineData?.length > 0 && (
+          <>
+            <LineChart data={trendData.timelineData} keyword={trendData.keyword} compareKeyword={trendData.compareKeyword} />
+            <div className="flex gap-4 mt-1">
+              <div className="flex items-center gap-2">
+                <span style={{ width: 24, height: 2.5, background: '#D4952B', borderRadius: 2, display: 'inline-block' }} />
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{trendData.keyword}</span>
+              </div>
+              {trendData.compareKeyword && (
+                <div className="flex items-center gap-2">
+                  <span style={{ width: 24, height: 0, borderTop: '2px dashed rgba(148,163,184,0.7)', display: 'inline-block' }} />
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{trendData.compareKeyword}</span>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {error && (
+          <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: 12, color: '#f87171', marginTop: 8 }}>{error}</div>
+        )}
       </div>
 
-      {error && (
-        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#f87171' }}>{error}</div>
-      )}
-
+      {/* ── Score-Karten + Queries (nur wenn Daten vorhanden) ── */}
       {trendData && (
         <>
-          {/* Score explanation */}
-          <div style={{ background: 'rgba(212,149,43,0.08)', border: '1px solid rgba(212,149,43,0.2)', borderRadius: 12, padding: '10px 16px', fontSize: 11, color: 'rgba(255,255,255,0.55)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-            <span style={{ flexShrink: 0, marginTop: 1 }}>ℹ️</span>
-            <span>
-              <strong style={{ color: 'rgba(255,255,255,0.75)' }}>Score 0–100</strong> = relatives Suchinteresse. 100 = höchster Punkt im Zeitraum. Die Hover-Zahlen sind <em>keine</em> absoluten Suchanfragen — Google normiert immer auf 100.
-              &nbsp;·&nbsp; <strong style={{ color: 'rgba(255,255,255,0.75)' }}>Steigend</strong> = jetzt posten · <strong style={{ color: 'rgba(255,255,255,0.75)' }}>Fallend</strong> = Welle abwarten
-            </span>
-          </div>
-
-          {/* Score + Trend */}
+          {/* Score-Karten */}
           <div className="grid grid-cols-3 gap-3">
-            <div style={cardStyle} className="p-5 text-center">
+            <div style={card} className="p-5 text-center">
               <p style={{ fontSize: 32, fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>{trendData.currentScore}</p>
               <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4 }}>Aktueller Score</p>
               <ScoreLabel score={trendData.currentScore} />
             </div>
-            <div style={cardStyle} className="p-5 text-center">
+            <div style={card} className="p-5 text-center">
               <p style={{ fontSize: 32, fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>{trendData.peakScore}</p>
               <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4 }}>Peak Score</p>
               <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 4 }}>Jahreshöchstwert = 100</p>
@@ -362,37 +434,12 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
             </div>
           </div>
 
-          {/* Interest over time */}
-          {trendData.timelineData.length > 0 && (
-            <div style={cardStyle} className="p-5">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Interesse über Zeit — 12 Monate</p>
-                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>Score 100 = höchstes Interesse im Zeitraum · Hover für Details</p>
-                </div>
-                <div className="flex items-center gap-4 flex-shrink-0 ml-4" style={{ fontSize: 11 }}>
-                  <span className="flex items-center gap-1.5" style={{ fontWeight: 500, color: '#D4952B' }}>
-                    <span style={{ width: 24, height: 2, background: '#D4952B', borderRadius: 2, display: 'inline-block' }} />
-                    {trendData.keyword}
-                  </span>
-                  {trendData.compareKeyword && (
-                    <span className="flex items-center gap-1.5" style={{ fontWeight: 500, color: '#94A3B8' }}>
-                      <span style={{ width: 24, height: 0, borderTop: '2px dashed #94A3B8', display: 'inline-block' }} />
-                      {trendData.compareKeyword}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <LineChart data={trendData.timelineData} keyword={trendData.keyword} compareKeyword={trendData.compareKeyword} />
-            </div>
-          )}
-
-          {/* Rising + Top queries */}
+          {/* Rising + Top Queries */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {trendData.risingQueries.length > 0 && (
-              <div style={cardStyle} className="p-5">
+              <div style={card} className="p-5">
                 <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>🚀 Aufsteigende Suchanfragen</p>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 16 }}>Content-Ideen mit hohem Momentum</p>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 14 }}>Content-Ideen mit hohem Momentum</p>
                 <div className="space-y-2">
                   {trendData.risingQueries.map((q, i) => (
                     <button
@@ -411,38 +458,34 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                 </div>
               </div>
             )}
-
             {trendData.topQueries.length > 0 && (
-              <div style={cardStyle} className="p-5">
+              <div style={card} className="p-5">
                 <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>📊 Top Suchanfragen</p>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 16 }}>Dauerhaft beliebteste Themen</p>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 14 }}>Dauerhaft beliebteste Themen</p>
                 <div className="space-y-3">
-                  {trendData.topQueries.map((q, i) => {
-                    const pct = Math.round((q.value / 100) * 100)
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => handleSearch(q.query)}
-                        style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>{q.query}</span>
-                          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{q.value}</span>
-                        </div>
-                        <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 999, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', background: '#D4952B', borderRadius: 999, width: `${pct}%` }} />
-                        </div>
-                      </button>
-                    )
-                  })}
+                  {trendData.topQueries.map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSearch(q.query)}
+                      style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>{q.query}</span>
+                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{q.value}</span>
+                      </div>
+                      <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', background: '#D4952B', borderRadius: 999, width: `${Math.round((q.value / 100) * 100)}%` }} />
+                      </div>
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Rising topics */}
+          {/* Rising Topics */}
           {trendData.risingTopics.length > 0 && (
-            <div style={cardStyle} className="p-5">
+            <div style={card} className="p-5">
               <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Verwandte Themen mit Momentum</p>
               <div className="flex flex-wrap gap-2">
                 {trendData.risingTopics.map((t, i) => (
@@ -461,20 +504,44 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
             </div>
           )}
 
-          {/* CREATE POST Section */}
-          <div style={cardStyleHighlight} className="p-5">
-            <p style={{ fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: 4 }}>Post aus diesem Trend erstellen</p>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: 16 }}>
-              Wähle einen Creator — Perplexity recherchiert aktuelle Infos zu <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>"{trendData.keyword}"</span> und GPT schreibt den Post in seinem Stil.
+          {/* Post-Ideen + Creator */}
+          <div style={cardGold} className="p-5">
+            <p style={{ fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: 4 }}>
+              🚀 Post-Ideen zu diesem Trend
+            </p>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>
+              Klicke auf eine Idee oder wähle einen Creator-Stil
             </p>
 
-            {savedCreators.length === 0 ? (
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
-                Noch keine Creators gespeichert. Analysiere einen Creator im Tab "Creator-Analyse" und speichere ihn.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {/* Suggested Topics als Chips */}
+            <div className="flex flex-wrap gap-2 mb-5">
+              {[
+                `5 Tools die mir 10h/Woche sparen`,
+                `Warum ${trendData.keyword} 2025 explodiert`,
+                `Mein erstes Setup mit ${trendData.keyword}`,
+                `${trendData.keyword} für Einsteiger`,
+                `${trendData.keyword} ersetzt keine Jobs`,
+                ...(trendData.risingQueries.slice(0, 3).map(q => q.query)),
+              ].map((topic, i) => (
+                <button
+                  key={i}
+                  onClick={() => onCreatePost && onCreatePost({ topic, creator: selectedCreator, trendContext: { trend: trendData.trend, currentScore: trendData.currentScore, risingQueries: trendData.risingQueries } })}
+                  style={{ padding: '7px 14px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', fontSize: 12, color: 'rgba(255,255,255,0.65)', cursor: 'pointer', transition: 'all 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(212,149,43,0.4)'; e.currentTarget.style.color = '#D4952B'; e.currentTarget.style.background = 'rgba(212,149,43,0.08)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+                >
+                  {topic}
+                </button>
+              ))}
+            </div>
+
+            {/* Creator-Auswahl */}
+            {savedCreators.length > 0 && (
+              <>
+                <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                  Creator-Stil wählen (optional)
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
                   {savedCreators.map((c) => (
                     <button
                       key={c.id}
@@ -487,11 +554,10 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                       }}
                     >
                       <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(212,149,43,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
-                        {c.avatarUrl ? (
-                          <img src={c.avatarUrl} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          <span style={{ fontSize: 12, fontWeight: 700, color: '#D4952B' }}>{c.name?.charAt(0)}</span>
-                        )}
+                        {c.avatarUrl
+                          ? <img src={c.avatarUrl} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : <span style={{ fontSize: 12, fontWeight: 700, color: '#D4952B' }}>{c.name?.charAt(0)}</span>
+                        }
                       </div>
                       <div className="min-w-0">
                         <p style={{ fontSize: 12, fontWeight: 600, color: selectedCreator?.id === c.id ? '#D4952B' : 'rgba(255,255,255,0.8)' }} className="truncate">{c.name}</p>
@@ -500,44 +566,56 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                     </button>
                   ))}
                 </div>
-
-                {selectedCreator && (
-                  <button
-                    onClick={() => onCreatePost({
-                      topic: trendData.keyword,
-                      creator: selectedCreator,
-                      trendContext: {
-                        trend: trendData.trend,
-                        currentScore: trendData.currentScore,
-                        risingQueries: trendData.risingQueries,
-                      },
-                    })}
-                    style={{ width: '100%', padding: '12px 20px', background: '#D4952B', color: '#0a0a0a', border: 'none', borderRadius: 999, fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-                  >
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    Post erstellen im Stil von {selectedCreator.name}
-                  </button>
-                )}
-              </div>
+              </>
             )}
+
+            {savedCreators.length === 0 && (
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginBottom: 16 }}>
+                Tipp: Analysiere einen Creator und speichere ihn — dann kannst du Posts in seinem Stil erstellen.
+              </p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => onCreatePost && onCreatePost({
+                  topic: trendData.keyword,
+                  creator: selectedCreator,
+                  trendContext: { trend: trendData.trend, currentScore: trendData.currentScore, risingQueries: trendData.risingQueries },
+                })}
+                style={{ padding: '11px 24px', background: '#D4952B', color: '#0a0a0a', border: 'none', borderRadius: 999, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+              >
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                {selectedCreator ? `Post im Stil von ${selectedCreator.name}` : 'Post erstellen'}
+              </button>
+              {selectedCreator && (
+                <button
+                  onClick={() => setSelectedCreator(null)}
+                  style={{ padding: '11px 20px', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, fontSize: 13, cursor: 'pointer' }}
+                >
+                  Ohne Stil
+                </button>
+              )}
+            </div>
           </div>
         </>
       )}
 
+      {/* Vorschlag-Chips wenn noch keine Suche */}
       {!trendData && !isLoading && !error && (
-        <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-          <div style={{ width: 64, height: 64, borderRadius: 20, background: 'rgba(212,149,43,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="32" height="32" fill="none" stroke="#D4952B" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          </div>
-          <div>
-            <p style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>Finde trendende Themen</p>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginTop: 6, maxWidth: 320 }}>
-              Gib einen Begriff ein oder wähle einen Vorschlag — sieh sofort ob das Thema gerade steigt oder fällt
-            </p>
+        <div style={card} className="p-5">
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Beliebte Themen</p>
+          <div className="flex flex-wrap gap-2">
+            {SUGGESTED_TOPICS.map(t => (
+              <button
+                key={t}
+                onClick={() => handleSearch(t)}
+                style={{ padding: '7px 14px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', fontSize: 12, color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}
+              >
+                {t}
+              </button>
+            ))}
           </div>
         </div>
       )}
