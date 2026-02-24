@@ -24,6 +24,7 @@ function App() {
   const [postModalCreator, setPostModalCreator] = useState(null)
   const [postModalPrefill, setPostModalPrefill] = useState(null)
   const [postModalTrendContext, setPostModalTrendContext] = useState(null)
+  const [postModalOpen, setPostModalOpen] = useState(false)
   const [step, setStep] = useState('idle') // idle | searching | posts | generating | refining
   const [topPosts, setTopPosts] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -334,6 +335,7 @@ function App() {
               setPostModalCreator(creator)
               setPostModalPrefill(topic)
               setPostModalTrendContext(trendContext)
+              setPostModalOpen(true)
             }}
           />
         ) : appMode === 'saved-creators' ? (
@@ -399,12 +401,12 @@ function App() {
           </div>
         )}
       </main>
-      {postModalCreator && (
+      {postModalOpen && (
         <CreatePostModal
           creator={postModalCreator}
           prefillTopic={postModalPrefill}
           trendContext={postModalTrendContext}
-          onClose={() => { setPostModalCreator(null); setPostModalPrefill(null); setPostModalTrendContext(null) }}
+          onClose={() => { setPostModalOpen(false); setPostModalCreator(null); setPostModalPrefill(null); setPostModalTrendContext(null) }}
         />
       )}
     </div>

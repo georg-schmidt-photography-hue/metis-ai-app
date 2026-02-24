@@ -46,15 +46,17 @@ export default function CreatePostModal({ creator, onClose, prefillTopic, trendC
         <div className="sticky top-0 bg-[#FFFDF9] border-b border-[#E8E4DD] px-6 py-4 flex items-center justify-between rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-[#E8E4DD] flex items-center justify-center overflow-hidden flex-shrink-0">
-              {creator.avatarUrl ? (
+              {creator?.avatarUrl ? (
                 <img src={creator.avatarUrl} alt={creator.name} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-sm font-bold text-[#6B6560]">{creator.name?.charAt(0)}</span>
+                <span className="text-sm font-bold text-[#6B6560]">{creator?.name?.charAt(0) ?? '✨'}</span>
               )}
             </div>
             <div>
-              <p className="text-sm font-semibold text-[#2D2B28]">Post im Stil von {creator.name}</p>
-              <p className="text-xs text-[#A39E93]">Gib ein Thema ein — der Post wird in ihrem Stil geschrieben</p>
+              <p className="text-sm font-semibold text-[#2D2B28]">
+                {creator ? `Post im Stil von ${creator.name}` : 'Post erstellen'}
+              </p>
+              <p className="text-xs text-[#A39E93]">Gib ein Thema ein — der Post wird für LinkedIn geschrieben</p>
             </div>
           </div>
           <button
@@ -80,14 +82,19 @@ export default function CreatePostModal({ creator, onClose, prefillTopic, trendC
 
           {/* Creator Style Preview */}
           <div className="bg-[#F7F5F0] rounded-xl p-4 space-y-2">
-            <p className="text-[10px] text-[#A39E93] uppercase tracking-wider font-semibold">Gewählter Creator-Stil</p>
-            {creator.successFactor && (
+            <p className="text-[10px] text-[#A39E93] uppercase tracking-wider font-semibold">
+              {creator ? 'Gewählter Creator-Stil' : 'Kein Creator-Stil gewählt'}
+            </p>
+            {creator?.successFactor && (
               <p className="text-xs text-[#4A4743] leading-relaxed">
                 <span className="font-semibold text-[#2D2B28]">Erfolgsfaktor: </span>
                 {creator.successFactor}
               </p>
             )}
-            {creator.contentPillars?.length > 0 && (
+            {!creator && (
+              <p className="text-xs text-[#A39E93]">Der Post wird ohne spezifischen Creator-Stil erstellt.</p>
+            )}
+            {creator?.contentPillars?.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {creator.contentPillars.slice(0, 4).map((p) => (
                   <span key={p.pillar} className="text-[10px] px-2 py-0.5 rounded-md bg-white border border-[#E8E4DD] text-[#6B6560]">
