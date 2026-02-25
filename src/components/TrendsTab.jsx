@@ -154,12 +154,55 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
   const [trendingLoading, setTrendingLoading] = useState(true)
   const [activeChip, setActiveChip] = useState(DEFAULT_KEYWORD)
   const chipsRef = useRef(null)
+  const thumbRef = useRef(null)
+  const trackRef = useRef(null)
 
-  const scrollChips = (dir) => {
-    if (chipsRef.current) {
-      chipsRef.current.scrollBy({ left: dir * 220, behavior: 'smooth' })
-    }
+  // Scrollbalken-Thumb aktualisieren wenn Chips gescrollt werden
+  const updateThumb = () => {
+    const el = chipsRef.current
+    const thumb = thumbRef.current
+    const track = trackRef.current
+    if (!el || !thumb || !track) return
+    const ratio = el.scrollWidth > el.clientWidth
+      ? el.clientWidth / el.scrollWidth
+      : 1
+    const thumbW = Math.max(40, track.clientWidth * ratio)
+    const maxScroll = el.scrollWidth - el.clientWidth
+    const maxThumbLeft = track.clientWidth - thumbW
+    const thumbLeft = maxScroll > 0 ? (el.scrollLeft / maxScroll) * maxThumbLeft : 0
+    thumb.style.width = `${thumbW}px`
+    thumb.style.transform = `translateX(${thumbLeft}px)`
   }
+
+  // Thumb ziehen
+  const handleThumbMouseDown = (e) => {
+    e.preventDefault()
+    const el = chipsRef.current
+    const thumb = thumbRef.current
+    const track = trackRef.current
+    if (!el || !thumb || !track) return
+    const startX = e.clientX
+    const startScroll = el.scrollLeft
+    const thumbW = thumb.offsetWidth
+    const maxThumbLeft = track.clientWidth - thumbW
+    const maxScroll = el.scrollWidth - el.clientWidth
+
+    const onMove = (ev) => {
+      const dx = ev.clientX - startX
+      const ratio = maxScroll / maxThumbLeft
+      el.scrollLeft = Math.max(0, Math.min(maxScroll, startScroll + dx * ratio))
+      updateThumb()
+    }
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }
+
+  // Thumb nach Render initialisieren
+  useEffect(() => { setTimeout(updateThumb, 100) }, [trendingNow, trendingLoading])
 
   // Trending-Now laden — mit 30-Minuten SessionStorage-Cache
   useEffect(() => {
@@ -266,10 +309,10 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
         ) : (
           <div style={{ position: 'relative' }}>
             {/* Fade rechts */}
-            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 4, width: 60, background: 'linear-gradient(to left, rgba(18,18,18,0.95), transparent)', zIndex: 2, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 20, width: 60, background: 'linear-gradient(to left, rgba(18,18,18,0.95), transparent)', zIndex: 2, pointerEvents: 'none' }} />
 
             {/* Chip-Scroll */}
-            <div ref={chipsRef} style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-none">
+            <div ref={chipsRef} onScroll={updateThumb} style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 10 }} className="scrollbar-none">
               {(trendingChips.length > 0 ? trendingChips.slice(0, 25) : [
                 { label: 'KI & Automatisierung', item: { badge: 'hot' } },
                 { label: 'Remote Work', item: { change: '+32%' } },
@@ -307,6 +350,31 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                   </button>
                 )
               })}
+            </div>
+
+            {/* Scrollbalken */}
+            <div
+              ref={trackRef}
+              style={{ position: 'relative', height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 999, marginTop: 2, cursor: 'pointer' }}
+              onClick={(e) => {
+                const el = chipsRef.current
+                const track = trackRef.current
+                const thumb = thumbRef.current
+                if (!el || !track || !thumb) return
+                const rect = track.getBoundingClientRect()
+                const clickX = e.clientX - rect.left
+                const ratio = clickX / track.clientWidth
+                el.scrollLeft = ratio * (el.scrollWidth - el.clientWidth)
+                updateThumb()
+              }}
+            >
+              <div
+                ref={thumbRef}
+                onMouseDown={handleThumbMouseDown}
+                style={{ position: 'absolute', top: 0, left: 0, height: '100%', background: '#D4952B', borderRadius: 999, cursor: 'grab', minWidth: 40, transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#e8a83a'}
+                onMouseLeave={e => e.currentTarget.style.background = '#D4952B'}
+              />
             </div>
           </div>
         )}
