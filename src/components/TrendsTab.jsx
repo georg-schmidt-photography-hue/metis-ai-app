@@ -505,8 +505,49 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
               🚀 Post-Ideen zu diesem Trend
             </p>
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>
-              Klicke auf eine Idee oder wähle einen Creator-Stil
+              Klicke auf eine Idee oder gib dein eigenes Thema ein
             </p>
+
+            {/* Eigenes Thema eingeben */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+              <div style={{ flex: 1, position: 'relative' }}>
+                <svg style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: 'rgba(255,255,255,0.3)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Eigenes Thema eingeben…"
+                  id="custom-topic-input"
+                  style={{ width: '100%', paddingLeft: 36, paddingRight: 12, paddingTop: 10, paddingBottom: 10, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 999, fontSize: 13, color: 'rgba(255,255,255,0.85)', outline: 'none' }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && e.target.value.trim()) {
+                      onCreatePost && onCreatePost({
+                        topic: e.target.value.trim(),
+                        creator: selectedCreator,
+                        trendContext: { trend: trendData.trend, currentScore: trendData.currentScore, risingQueries: trendData.risingQueries },
+                      })
+                      e.target.value = ''
+                    }
+                  }}
+                />
+              </div>
+              <button
+                onClick={() => {
+                  const input = document.getElementById('custom-topic-input')
+                  if (input?.value.trim()) {
+                    onCreatePost && onCreatePost({
+                      topic: input.value.trim(),
+                      creator: selectedCreator,
+                      trendContext: { trend: trendData.trend, currentScore: trendData.currentScore, risingQueries: trendData.risingQueries },
+                    })
+                    input.value = ''
+                  }
+                }}
+                style={{ padding: '10px 18px', background: '#D4952B', color: '#0a0a0a', border: 'none', borderRadius: 999, fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+              >
+                Post erstellen
+              </button>
+            </div>
 
             {/* Suggested Topics als Chips */}
             <div className="flex flex-wrap gap-2 mb-5">
