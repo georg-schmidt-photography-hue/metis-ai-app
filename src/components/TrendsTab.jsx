@@ -265,20 +265,11 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
           </div>
         ) : (
           <div style={{ position: 'relative' }}>
-            {/* Fade links */}
-            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 4, width: 32, background: 'linear-gradient(to right, rgba(18,18,18,0.9), transparent)', zIndex: 2, pointerEvents: 'none', borderRadius: '999px 0 0 999px' }} />
             {/* Fade rechts */}
-            <div style={{ position: 'absolute', right: 32, top: 0, bottom: 4, width: 48, background: 'linear-gradient(to left, rgba(18,18,18,0.9), transparent)', zIndex: 2, pointerEvents: 'none' }} />
-            {/* Pfeil rechts */}
-            <button
-              onClick={() => scrollChips(1)}
-              style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-60%)', zIndex: 3, width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.7)' }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
-            </button>
+            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 4, width: 60, background: 'linear-gradient(to left, rgba(18,18,18,0.95), transparent)', zIndex: 2, pointerEvents: 'none' }} />
 
             {/* Chip-Scroll */}
-            <div ref={chipsRef} style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, paddingRight: 36 }} className="scrollbar-none">
+            <div ref={chipsRef} style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }} className="scrollbar-none">
               {(trendingChips.length > 0 ? trendingChips.slice(0, 25) : [
                 { label: 'KI & Automatisierung', item: { badge: 'hot' } },
                 { label: 'Remote Work', item: { change: '+32%' } },
