@@ -161,19 +161,33 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
     }
   }
 
-  // Trending-Now laden
+  // Trending-Now laden — mit 30-Minuten SessionStorage-Cache
   useEffect(() => {
-    fetch(`/api/trending-now?t=${Date.now()}`, { cache: 'no-store' })
+    const CACHE_KEY = 'metis_trending_now'
+    const CACHE_TTL = 30 * 60 * 1000 // 30 Minuten
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY)
+      if (cached) {
+        const { data, ts } = JSON.parse(cached)
+        if (Date.now() - ts < CACHE_TTL) {
+          setTrendingNow(data)
+          setTrendingLoading(false)
+          return
+        }
+      }
+    } catch (_) {}
+
+    fetch('/api/trending-now', { cache: 'no-store' })
       .then(r => r.json())
-      .then(d => setTrendingNow(d))
+      .then(d => {
+        setTrendingNow(d)
+        try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data: d, ts: Date.now() })) } catch (_) {}
+      })
       .catch(() => setTrendingNow(null))
       .finally(() => setTrendingLoading(false))
   }, [])
 
-  // Auto-Suche beim ersten Laden
-  useEffect(() => {
-    handleSearch(DEFAULT_KEYWORD)
-  }, [])
+  // Keine Auto-Suche — User klickt selbst einen Chip oder sucht manuell
 
   const handleSearch = async (kw) => {
     const term = (kw || keyword).trim()
