@@ -7,6 +7,16 @@ export default async function handler(req, res) {
   try {
     const compareText = compareWith ? ` im Vergleich zu "${compareWith}"` : ''
 
+    // Dynamisch die letzten 12 Monate berechnen
+    const now = new Date()
+    const months = []
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      months.push(d.toLocaleDateString('de-DE', { month: 'short', year: 'numeric' }))
+    }
+    const monthRange = `${months[0]} bis ${months[11]}`
+    const monthList = months.map(m => `{ "date": "${m}", "value": <0-100>${compareWith ? ', "compareValue": <0-100>' : ''} }`).join(',\n    ')
+
     const prompt = `Analysiere das Suchinteresse für "${keyword}"${compareText} in Deutschland.
 
 Antworte NUR mit diesem JSON (kein Text davor/danach):
@@ -15,8 +25,7 @@ Antworte NUR mit diesem JSON (kein Text davor/danach):
   "peakScore": <Zahl 0-100, Jahreshöchstwert>,
   "trend": <"rising"|"falling"|"stable">,
   "timelineData": [
-    { "date": "Feb 2025", "value": <0-100>${compareWith ? ', "compareValue": <0-100>' : ''} },
-    ... (12 Einträge, einen pro Monat Feb 2025 bis Jan 2026)
+    ${monthList}
   ],
   "risingQueries": [
     { "query": "...", "value": "+XX%" },
