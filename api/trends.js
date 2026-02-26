@@ -61,15 +61,51 @@ export default async function handler(req, res) {
 
       risingQueries = risingList.slice(0, 8).map(q => ({
         query: q.query,
-        value: q.value >= 5000 ? 'Breakout' : q.value, // plain number, TrendsTab adds +/% itself
+        value: q.value >= 5000 ? 'Breakout' : q.value,
       }))
-      // Normalize topQueries values to 0-100
       const maxTop = Math.max(...topList.map(q => q.value), 1)
       topQueries = topList.slice(0, 8).map(q => ({
         query: q.query,
         value: Math.round((q.value / maxTop) * 100),
       }))
     } catch (_) {}
+
+    // Fallback: wenn relatedQueries blockiert (Vercel IPs) → vergleichbare Suchanfragen via interestOverTime
+    if (topQueries.length === 0) {
+      try {
+        const suffixes = ['Anbieter', 'Vergleich', 'Kosten', 'Erfahrungen', 'Tipps', 'Test', '2025', 'Wechsel']
+        const variations = suffixes.map(s => `${keyword} ${s}`)
+        // interestOverTime erlaubt max 5 keywords gleichzeitig
+        const batch1 = variations.slice(0, 5)
+        const batch2 = variations.slice(5, 8)
+
+        const scores = {}
+        for (const batch of [batch1, batch2]) {
+          if (batch.length === 0) continue
+          try {
+            const raw = await googleTrends.interestOverTime({ keyword: batch, geo, startTime })
+            const json = JSON.parse(raw)
+            const items = json.default?.timelineData || []
+            // Durchschnittswert pro Keyword
+            batch.forEach((kw, idx) => {
+              const vals = items.map(it => it.value?.[idx] || 0).filter(v => v > 0)
+              if (vals.length > 0) {
+                scores[kw] = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
+              }
+            })
+          } catch (_) {}
+        }
+
+        const entries = Object.entries(scores).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
+        if (entries.length > 0) {
+          const maxVal = entries[0][1]
+          topQueries = entries.slice(0, 8).map(([query, val]) => ({
+            query,
+            value: Math.round((val / maxVal) * 100),
+          }))
+        }
+      } catch (_) {}
+    }
 
     // 3. Related Topics
     let risingTopics = []
