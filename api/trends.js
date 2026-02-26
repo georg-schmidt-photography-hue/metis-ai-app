@@ -74,7 +74,7 @@ export default async function handler(req, res) {
     try {
       const suggestions = await getAutocomplete(keyword)
       _debugRelated.suggestions = suggestions
-      const candidates = suggestions.filter(s => s !== keyword).slice(0, 5)
+      const candidates = suggestions.filter(s => s !== keyword).slice(0, 4) // max 5 total inkl. Haupt-Keyword
       _debugRelated.candidates = candidates
 
       if (candidates.length > 0) {
