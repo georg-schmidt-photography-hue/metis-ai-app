@@ -4,12 +4,4 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  optimizeDeps: {
-    exclude: ['google-trends-api'],
-  },
-  build: {
-    rollupOptions: {
-      external: ['google-trends-api'],
-    },
-  },
 })

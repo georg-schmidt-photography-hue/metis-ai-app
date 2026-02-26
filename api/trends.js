@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     const olderAvg = older3.reduce((a, b) => a + b, 0) / (older3.length || 1)
     const trend = recentAvg > olderAvg * 1.1 ? 'rising' : recentAvg < olderAvg * 0.9 ? 'falling' : 'stable'
 
-    // 2. Related Queries (blocked on Vercel cloud IPs — use variation fallback)
+    // 2. Related Queries
     let risingQueries = []
     let topQueries = []
     try {
@@ -61,61 +61,15 @@ export default async function handler(req, res) {
 
       risingQueries = risingList.slice(0, 8).map(q => ({
         query: q.query,
-        value: q.value >= 5000 ? 'Breakout' : q.value,
+        value: q.value >= 5000 ? 'Breakout' : q.value, // plain number, TrendsTab adds +/% itself
       }))
+      // Normalize topQueries values to 0-100
       const maxTop = Math.max(...topList.map(q => q.value), 1)
       topQueries = topList.slice(0, 8).map(q => ({
         query: q.query,
         value: Math.round((q.value / maxTop) * 100),
       }))
     } catch (_) {}
-
-    // Fallback: Keyword in Einzelwörter aufsplitten und via interestOverTime vergleichen
-    if (topQueries.length === 0) {
-      try {
-        const stopWords = new Set([
-          'der','die','das','ein','eine','und','oder','mit','für','von','zu','im','in','an',
-          'auf','bei','nach','wie','was','ist','sind','wird','werden','des','dem','den','not',
-          'the','and','for','with','from','this','that','have','has','are','was','were',
-        ])
-        const words = keyword
-          .toLowerCase()
-          .split(/\s+/)
-          .filter(w => w.length >= 3 && !stopWords.has(w))
-
-        if (words.length >= 1) {
-          const compKeywords = [keyword, ...words.slice(0, 4)] // max 5 (Google Trends limit)
-
-          const compRaw = await googleTrends.interestOverTime({
-            keyword: compKeywords,
-            geo,
-            startTime,
-            granularTime: false,
-          })
-          const compJson = JSON.parse(compRaw)
-          const compItems = compJson.default?.timelineData || []
-
-          const sums = new Array(compKeywords.length).fill(0)
-          const counts = new Array(compKeywords.length).fill(0)
-          for (const item of compItems) {
-            ;(item.value || []).forEach((v, i) => {
-              sums[i] += v || 0
-              counts[i]++
-            })
-          }
-          const avgs = sums.map((s, i) => Math.round(s / (counts[i] || 1)))
-          const maxAvg = Math.max(...avgs, 1)
-
-          // Alle keywords (inkl. Hauptkeyword) als topQueries, normalisiert 0-100
-          topQueries = compKeywords
-            .map((kw, i) => ({
-              query: kw,
-              value: Math.round((avgs[i] / maxAvg) * 100),
-            }))
-            .filter(q => q.value > 0)
-        }
-      } catch (_) {}
-    }
 
     // 3. Related Topics
     let risingTopics = []
