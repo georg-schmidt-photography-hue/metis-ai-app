@@ -73,7 +73,7 @@ export default async function handler(req, res) {
     let _debugRelated = {}
     try {
       // Vorschläge für das volle Keyword + einzelne Wörter sammeln
-      const words = keyword.split(/\s+/).filter(w => w.length > 2)
+      const words = keyword.split(/\s+/).filter(w => w.length >= 2)
       const allSuggestions = await getAutocomplete(keyword)
       const wordSuggestions = words.length > 1
         ? (await Promise.all(words.map(w => getAutocomplete(w)))).flat()
