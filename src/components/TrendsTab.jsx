@@ -502,70 +502,54 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
             </div>
           </div>
 
-          {/* Suchanfragen-Balken */}
-          {(() => {
-            const _tl = trendData.timelineData || []
-            const topQ = trendData.topQueries?.length > 0
-              ? trendData.topQueries
-              : (() => {
-                  const items = [..._tl].sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 6)
-                  const maxVal = Math.max(...items.map(d => d.value || 0), 1)
-                  return items.map(d => ({ query: d.date, value: Math.round(((d.value || 0) / maxVal) * 100) }))
-                })()
-            return (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {trendData.risingQueries.length > 0 && (
-                  <div style={card} className="p-5">
-                    <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>🚀 Aufsteigende Suchanfragen</p>
-                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 14 }}>Content-Ideen mit hohem Momentum</p>
-                    <div className="space-y-2">
-                      {trendData.risingQueries.map((q, i) => (
-                        <button
-                          key={i}
-                          onClick={() => handleSearch(q.query)}
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}
-                          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(212,149,43,0.08)'; e.currentTarget.style.borderColor = 'rgba(212,149,43,0.25)' }}
-                          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'transparent' }}
-                        >
-                          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>{q.query}</span>
-                          <span style={{ fontSize: 10, color: '#D4952B', fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
-                            {q.value === 'Breakout' ? '🚀 Breakout' : `+${q.value}%`}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {topQ.length > 0 && (
-                  <div style={card} className="p-5">
-                    <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
-                      📊 {trendData.topQueries?.length > 0 ? 'Top Suchanfragen' : 'Stärkste Monate'}
-                    </p>
-                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 14 }}>
-                      {trendData.topQueries?.length > 0 ? 'Dauerhaft beliebteste Themen' : 'Monate mit höchstem Suchinteresse'}
-                    </p>
-                    <div className="space-y-3">
-                      {topQ.map((q, i) => (
-                        <button
-                          key={i}
-                          onClick={() => trendData.topQueries?.length > 0 && handleSearch(q.query)}
-                          style={{ width: '100%', textAlign: 'left', cursor: trendData.topQueries?.length > 0 ? 'pointer' : 'default', background: 'none', border: 'none', padding: 0 }}
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>{q.query}</span>
-                            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{q.value}</span>
-                          </div>
-                          <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 999, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', background: '#D4952B', borderRadius: 999, width: `${q.value}%` }} />
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+          {/* Rising + Top Queries */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {trendData.risingQueries.length > 0 && (
+              <div style={card} className="p-5">
+                <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>🚀 Aufsteigende Suchanfragen</p>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 14 }}>Content-Ideen mit hohem Momentum</p>
+                <div className="space-y-2">
+                  {trendData.risingQueries.map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSearch(q.query)}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(212,149,43,0.08)'; e.currentTarget.style.borderColor = 'rgba(212,149,43,0.25)' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'transparent' }}
+                    >
+                      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>{q.query}</span>
+                      <span style={{ fontSize: 10, color: '#D4952B', fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
+                        {q.value === 'Breakout' ? '🚀 Breakout' : `+${q.value}%`}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            )
-          })()}
+            )}
+            {trendData.topQueries.length > 0 && (
+              <div style={card} className="p-5">
+                <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>📊 Top Suchanfragen</p>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 14 }}>Dauerhaft beliebteste Themen</p>
+                <div className="space-y-3">
+                  {trendData.topQueries.map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSearch(q.query)}
+                      style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>{q.query}</span>
+                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{q.value}</span>
+                      </div>
+                      <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', background: '#D4952B', borderRadius: 999, width: `${Math.round((q.value / 100) * 100)}%` }} />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Rising Topics */}
           {trendData.risingTopics.length > 0 && (
