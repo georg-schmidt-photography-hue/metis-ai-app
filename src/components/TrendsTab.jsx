@@ -502,54 +502,80 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
             </div>
           </div>
 
-          {/* Rising + Top Queries */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {trendData.risingQueries.length > 0 && (
-              <div style={card} className="p-5">
-                <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>🚀 Aufsteigende Suchanfragen</p>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 14 }}>Content-Ideen mit hohem Momentum</p>
-                <div className="space-y-2">
-                  {trendData.risingQueries.map((q, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSearch(q.query)}
-                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}
-                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(212,149,43,0.08)'; e.currentTarget.style.borderColor = 'rgba(212,149,43,0.25)' }}
-                      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'transparent' }}
-                    >
-                      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>{q.query}</span>
-                      <span style={{ fontSize: 10, color: '#D4952B', fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
-                        {q.value === 'Breakout' ? '🚀 Breakout' : `+${q.value}%`}
-                      </span>
-                    </button>
-                  ))}
+          {/* Rising + Top Queries — Google Trends Layout */}
+          {(trendData.topQueries.length > 0 || trendData.risingQueries.length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Top-Suchanfragen */}
+              {trendData.topQueries.length > 0 && (
+                <div style={card} className="p-5">
+                  <div style={{ marginBottom: 16 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.85)', marginBottom: 2 }}>Top-Suchanfragen</p>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>Deutschland · Letztes Jahr</p>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Suchanfrage</span>
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Suchinteresse</span>
+                  </div>
+                  <div>
+                    {trendData.topQueries.map((q, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleSearch(q.query)}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', textAlign: 'left' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                      >
+                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', width: 18, flexShrink: 0, textAlign: 'right' }}>{i + 1}</span>
+                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.query}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                          <div style={{ width: 60, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 999, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', background: '#4e8cff', borderRadius: 999, width: `${q.value}%` }} />
+                          </div>
+                          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', width: 28, textAlign: 'right' }}>{q.value}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            {trendData.topQueries.length > 0 && (
-              <div style={card} className="p-5">
-                <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>📊 Ähnliche Suchanfragen</p>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 14 }}>Verwandte Begriffe im Vergleich</p>
-                <div className="space-y-3">
-                  {trendData.topQueries.map((q, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSearch(q.query)}
-                      style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>{q.query}</span>
-                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{q.value}%</span>
-                      </div>
-                      <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 999, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', background: '#D4952B', borderRadius: 999, width: `${q.value}%` }} />
-                      </div>
-                    </button>
-                  ))}
+              )}
+
+              {/* Zunehmende Suchanfragen */}
+              {trendData.risingQueries.length > 0 && (
+                <div style={card} className="p-5">
+                  <div style={{ marginBottom: 16 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.85)', marginBottom: 2 }}>Zunehmende Suchanfragen</p>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>Deutschland · Letztes Jahr</p>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Suchanfrage</span>
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ändern</span>
+                  </div>
+                  <div>
+                    {trendData.risingQueries.map((q, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleSearch(q.query)}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', textAlign: 'left' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                      >
+                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', width: 18, flexShrink: 0, textAlign: 'right' }}>{i + 1}</span>
+                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.query}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                          <div style={{ width: 24, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 999, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', background: '#4e8cff', borderRadius: 999, width: '60%' }} />
+                          </div>
+                          <span style={{ fontSize: 11, color: '#D4952B', fontWeight: 600, minWidth: 56, textAlign: 'right' }}>
+                            {q.value === 'Breakout' ? 'Breakout' : `+${q.value} %`}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* Rising Topics */}
           {trendData.risingTopics.length > 0 && (
