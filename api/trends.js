@@ -70,26 +70,27 @@ export default async function handler(req, res) {
     let risingQueries = []
     let topQueries = []
 
+    let _debugRelated = {}
     try {
-      // Autocomplete-Vorschläge holen (z.B. "KI & Automatisierung ..." → 8 Vorschläge)
       const suggestions = await getAutocomplete(keyword)
+      _debugRelated.suggestions = suggestions
       const candidates = suggestions.filter(s => s !== keyword).slice(0, 5)
+      _debugRelated.candidates = candidates
 
       if (candidates.length > 0) {
-        // Trend-Scores für alle Kandidaten + Keyword gleichzeitig holen
         const allKw = [keyword, ...candidates]
         const raw = await googleTrends.interestOverTime({ keyword: allKw, geo, startTime })
         const json = JSON.parse(raw)
         const items = json.default?.timelineData || []
+        _debugRelated.itemsCount = items.length
 
-        // Durchschnittswert pro Keyword über den Zeitraum
         const avgScores = allKw.map((kw, idx) => {
           const vals = items.map(it => it.value?.[idx] || 0)
           const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
           return { query: kw, avg: Math.round(avg) }
         })
+        _debugRelated.avgScores = avgScores
 
-        // Ohne das Haupt-Keyword, nur die Kandidaten
         const related = avgScores.slice(1).filter(e => e.avg > 0).sort((a, b) => b.avg - a.avg)
         const maxVal = Math.max(...related.map(e => e.avg), 1)
 
@@ -98,7 +99,6 @@ export default async function handler(req, res) {
           value: Math.round((e.avg / maxVal) * 100),
         }))
 
-        // Aktuelle vs. vergangene Periode für "Zunehmend"-Berechnung
         const half = Math.floor(items.length / 2)
         risingQueries = related.map(e => {
           const idx = allKw.indexOf(e.query)
@@ -114,7 +114,7 @@ export default async function handler(req, res) {
           return vb - va
         })
       }
-    } catch (_) {}
+    } catch (e) { _debugRelated.error = e.message }
 
     // 3. Related Topics
     let risingTopics = []
@@ -141,6 +141,7 @@ export default async function handler(req, res) {
       topQueries,
       risingTopics,
       topTopics: [],
+      _debug: _debugRelated,
     })
   } catch (err) {
     res.status(500).json({ error: err.message || 'Trend-Analyse fehlgeschlagen' })
