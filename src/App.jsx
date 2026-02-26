@@ -60,7 +60,7 @@ function App() {
     setGeneratingIndex(null)
 
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 120000)
+    const timeout = setTimeout(() => controller.abort(), 240000) // 4 Minuten für YouTube
 
     try {
       const response = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL, {
