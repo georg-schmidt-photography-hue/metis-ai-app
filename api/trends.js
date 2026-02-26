@@ -72,19 +72,13 @@ export default async function handler(req, res) {
 
     let _debugRelated = {}
     try {
-      // Vorschläge für das volle Keyword + einzelne Wörter sammeln
-      const words = keyword.split(/\s+/).filter(w => w.length >= 2)
-      const allSuggestions = await getAutocomplete(keyword)
-      const wordSuggestions = words.length > 1
-        ? (await Promise.all(words.map(w => getAutocomplete(w)))).flat()
-        : []
-      const combined = [...new Set([...allSuggestions, ...wordSuggestions])]
-      _debugRelated.suggestions = combined
+      const suggestions = await getAutocomplete(keyword)
+      _debugRelated.suggestions = suggestions
 
-      // Haupt-Keyword und Duplikate rausfiltern, max 4 Kandidaten
+      // Nur das exakte Haupt-Keyword rausfiltern, Long-Tail-Varianten behalten
       const lowerKw = keyword.toLowerCase()
-      const candidates = combined
-        .filter(s => s.toLowerCase() !== lowerKw && !s.toLowerCase().startsWith(lowerKw + ' '))
+      const candidates = suggestions
+        .filter(s => s.toLowerCase() !== lowerKw)
         .slice(0, 4)
       _debugRelated.candidates = candidates
 
