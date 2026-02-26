@@ -1,3 +1,5 @@
+import googleTrends from 'google-trends-api'
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
 
@@ -5,76 +7,80 @@ export default async function handler(req, res) {
   if (!keyword) return res.status(400).json({ error: 'keyword erforderlich' })
 
   try {
-    const compareText = compareWith ? ` im Vergleich zu "${compareWith}"` : ''
+    const startTime = new Date()
+    startTime.setMonth(startTime.getMonth() - 12)
 
-    // Dynamisch die letzten 12 Monate berechnen
-    const now = new Date()
-    const months = []
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      months.push(d.toLocaleDateString('de-DE', { month: 'short', year: 'numeric' }))
-    }
-    const monthRange = `${months[0]} bis ${months[11]}`
-    const monthList = months.map(m => `{ "date": "${m}", "value": <0-100>${compareWith ? ', "compareValue": <0-100>' : ''} }`).join(',\n    ')
+    const keywords = compareWith ? [keyword, compareWith] : [keyword]
 
-    const prompt = `Analysiere das Suchinteresse für "${keyword}"${compareText} in Deutschland.
-
-Antworte NUR mit diesem JSON (kein Text davor/danach):
-{
-  "currentScore": <Zahl 0-100, aktuelles relatives Interesse>,
-  "peakScore": <Zahl 0-100, Jahreshöchstwert>,
-  "trend": <"rising"|"falling"|"stable">,
-  "timelineData": [
-    ${monthList}
-  ],
-  "risingQueries": [
-    { "query": "...", "value": "+XX%" },
-    ... (8 Einträge, aufsteigende Suchanfragen zu "${keyword}")
-  ],
-  "topQueries": [
-    { "query": "...", "value": <Zahl 0-100> },
-    ... (8 Einträge, beliebteste Suchanfragen zu "${keyword}")
-  ],
-  "risingTopics": [
-    { "title": "...", "type": "..." },
-    ... (6 verwandte aufsteigende Themen)
-  ]
-}`
-
-    const perpRes = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'sonar',
-        max_tokens: 1500,
-        messages: [
-          { role: 'system', content: 'Antworte NUR mit validem JSON. Kein Markdown, keine Erklärungen.' },
-          { role: 'user', content: prompt },
-        ],
-      }),
+    // 1. Interest Over Time (Timeline)
+    const timelineRaw = await googleTrends.interestOverTime({
+      keyword: keywords,
+      geo,
+      startTime,
+      granularTime: false,
     })
+    const timelineJson = JSON.parse(timelineRaw)
+    const timelineItems = timelineJson.default?.timelineData || []
 
-    const perpData = await perpRes.json()
-    const raw = (perpData.choices?.[0]?.message?.content || '').trim()
-      .replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
+    // Aggregate weekly data to monthly averages
+    const monthMap = {}
+    for (const item of timelineItems) {
+      const date = new Date(Number(item.time) * 1000)
+      const key = date.toLocaleDateString('de-DE', { month: 'short', year: 'numeric' })
+      if (!monthMap[key]) monthMap[key] = { sum: 0, sum2: 0, count: 0 }
+      monthMap[key].sum += item.value[0] || 0
+      if (keywords.length > 1) monthMap[key].sum2 += item.value[1] || 0
+      monthMap[key].count++
+    }
 
-    const start = raw.indexOf('{')
-    const end = raw.lastIndexOf('}')
-    if (start === -1) throw new Error('Keine Trend-Daten erhalten')
-
-    const parsed = JSON.parse(raw.slice(start, end + 1))
-
-    const timelineData = (parsed.timelineData || []).map(d => ({
-      date: d.date || '',
-      value: Math.min(100, Math.max(0, Number(d.value) || 0)),
-      compareValue: compareWith ? Math.min(100, Math.max(0, Number(d.compareValue) || 0)) : null,
+    const timelineData = Object.entries(monthMap).map(([date, v]) => ({
+      date,
+      value: Math.round(v.sum / v.count),
+      compareValue: compareWith ? Math.round(v.sum2 / v.count) : null,
     }))
 
-    const currentScore = parsed.currentScore ?? timelineData[timelineData.length - 1]?.value ?? 0
-    const peakScore = parsed.peakScore ?? Math.max(...timelineData.map(d => d.value), 1)
+    const values = timelineData.map(d => d.value)
+    const currentScore = values[values.length - 1] ?? 0
+    const peakScore = Math.max(...values, 1)
+    const recent3 = values.slice(-3)
+    const older3 = values.slice(-6, -3)
+    const recentAvg = recent3.reduce((a, b) => a + b, 0) / (recent3.length || 1)
+    const olderAvg = older3.reduce((a, b) => a + b, 0) / (older3.length || 1)
+    const trend = recentAvg > olderAvg * 1.1 ? 'rising' : recentAvg < olderAvg * 0.9 ? 'falling' : 'stable'
+
+    // 2. Related Queries
+    let risingQueries = []
+    let topQueries = []
+    try {
+      const relatedRaw = await googleTrends.relatedQueries({ keyword, geo, startTime })
+      const relatedJson = JSON.parse(relatedRaw)
+      const queryData = relatedJson.default?.rankedList || []
+
+      const risingList = queryData[0]?.rankedKeyword || []
+      const topList = queryData[1]?.rankedKeyword || []
+
+      risingQueries = risingList.slice(0, 8).map(q => ({
+        query: q.query,
+        value: q.value >= 5000 ? 'Breakout' : `+${q.value}%`,
+      }))
+      topQueries = topList.slice(0, 8).map(q => ({
+        query: q.query,
+        value: q.value,
+      }))
+    } catch (_) {}
+
+    // 3. Related Topics
+    let risingTopics = []
+    try {
+      const topicsRaw = await googleTrends.relatedTopics({ keyword, geo, startTime })
+      const topicsJson = JSON.parse(topicsRaw)
+      const topicData = topicsJson.default?.rankedList || []
+      const risingList = topicData[0]?.rankedKeyword || []
+      risingTopics = risingList.slice(0, 6).map(t => ({
+        title: t.topic?.title || t.query || '',
+        type: t.topic?.type || '',
+      }))
+    } catch (_) {}
 
     res.json({
       keyword,
@@ -82,11 +88,11 @@ Antworte NUR mit diesem JSON (kein Text davor/danach):
       geo,
       currentScore,
       peakScore,
-      trend: parsed.trend || 'stable',
+      trend,
       timelineData,
-      risingQueries: parsed.risingQueries || [],
-      topQueries: parsed.topQueries || [],
-      risingTopics: parsed.risingTopics || [],
+      risingQueries,
+      topQueries,
+      risingTopics,
       topTopics: [],
     })
   } catch (err) {
