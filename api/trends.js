@@ -61,11 +61,13 @@ export default async function handler(req, res) {
 
       risingQueries = risingList.slice(0, 8).map(q => ({
         query: q.query,
-        value: q.value >= 5000 ? 'Breakout' : `+${q.value}%`,
+        value: q.value >= 5000 ? 'Breakout' : q.value, // plain number, TrendsTab adds +/% itself
       }))
+      // Normalize topQueries values to 0-100
+      const maxTop = Math.max(...topList.map(q => q.value), 1)
       topQueries = topList.slice(0, 8).map(q => ({
         query: q.query,
-        value: q.value,
+        value: Math.round((q.value / maxTop) * 100),
       }))
     } catch (_) {}
 
