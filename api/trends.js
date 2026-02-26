@@ -48,62 +48,68 @@ export default async function handler(req, res) {
     const olderAvg = older3.reduce((a, b) => a + b, 0) / (older3.length || 1)
     const trend = recentAvg > olderAvg * 1.1 ? 'rising' : recentAvg < olderAvg * 0.9 ? 'falling' : 'stable'
 
-    // 2. Related Queries
+    // 2. Related Queries — zuerst mit Geo, dann global als Fallback
     let risingQueries = []
     let topQueries = []
-    try {
-      const relatedRaw = await googleTrends.relatedQueries({ keyword, geo, startTime })
-      const relatedJson = JSON.parse(relatedRaw)
-      const queryData = relatedJson.default?.rankedList || []
 
+    const parseRelated = (raw) => {
+      const json = JSON.parse(raw)
+      const queryData = json.default?.rankedList || []
       const risingList = queryData[0]?.rankedKeyword || []
       const topList = queryData[1]?.rankedKeyword || []
+      return { risingList, topList }
+    }
 
-      risingQueries = risingList.slice(0, 8).map(q => ({
-        query: q.query,
-        value: q.value >= 5000 ? 'Breakout' : q.value,
-      }))
-      const maxTop = Math.max(...topList.map(q => q.value), 1)
-      topQueries = topList.slice(0, 8).map(q => ({
-        query: q.query,
-        value: Math.round((q.value / maxTop) * 100),
-      }))
+    // Versuch 1: mit Geo
+    try {
+      const raw = await googleTrends.relatedQueries({ keyword, geo, startTime })
+      const { risingList, topList } = parseRelated(raw)
+      if (topList.length > 0 || risingList.length > 0) {
+        risingQueries = risingList.slice(0, 8).map(q => ({
+          query: q.query,
+          value: q.value >= 5000 ? 'Breakout' : q.value,
+        }))
+        const maxTop = Math.max(...topList.map(q => q.value), 1)
+        topQueries = topList.slice(0, 8).map(q => ({
+          query: q.query,
+          value: Math.round((q.value / maxTop) * 100),
+        }))
+      }
     } catch (_) {}
 
-    // Fallback: wenn relatedQueries blockiert (Vercel IPs) → vergleichbare Suchanfragen via interestOverTime
-    if (topQueries.length === 0) {
+    // Versuch 2: global (kein Geo), falls Geo-Abfrage blockiert/leer
+    if (topQueries.length === 0 && risingQueries.length === 0) {
       try {
-        const suffixes = ['Anbieter', 'Vergleich', 'Kosten', 'Erfahrungen', 'Tipps', 'Test', '2025', 'Wechsel']
-        const variations = suffixes.map(s => `${keyword} ${s}`)
-        // interestOverTime erlaubt max 5 keywords gleichzeitig
-        const batch1 = variations.slice(0, 5)
-        const batch2 = variations.slice(5, 8)
+        const raw = await googleTrends.relatedQueries({ keyword, geo: '', startTime })
+        const { risingList, topList } = parseRelated(raw)
+        risingQueries = risingList.slice(0, 8).map(q => ({
+          query: q.query,
+          value: q.value >= 5000 ? 'Breakout' : q.value,
+        }))
+        const maxTop = Math.max(...topList.map(q => q.value), 1)
+        topQueries = topList.slice(0, 8).map(q => ({
+          query: q.query,
+          value: Math.round((q.value / maxTop) * 100),
+        }))
+      } catch (_) {}
+    }
 
-        const scores = {}
-        for (const batch of [batch1, batch2]) {
-          if (batch.length === 0) continue
-          try {
-            const raw = await googleTrends.interestOverTime({ keyword: batch, geo, startTime })
-            const json = JSON.parse(raw)
-            const items = json.default?.timelineData || []
-            // Durchschnittswert pro Keyword
-            batch.forEach((kw, idx) => {
-              const vals = items.map(it => it.value?.[idx] || 0).filter(v => v > 0)
-              if (vals.length > 0) {
-                scores[kw] = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
-              }
-            })
-          } catch (_) {}
-        }
-
-        const entries = Object.entries(scores).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
-        if (entries.length > 0) {
-          const maxVal = entries[0][1]
-          topQueries = entries.slice(0, 8).map(([query, val]) => ({
-            query,
-            value: Math.round((val / maxVal) * 100),
-          }))
-        }
+    // Versuch 3: kürzerer Zeitraum (90 Tage global)
+    if (topQueries.length === 0 && risingQueries.length === 0) {
+      try {
+        const shortStart = new Date()
+        shortStart.setMonth(shortStart.getMonth() - 3)
+        const raw = await googleTrends.relatedQueries({ keyword, geo: '', startTime: shortStart })
+        const { risingList, topList } = parseRelated(raw)
+        risingQueries = risingList.slice(0, 8).map(q => ({
+          query: q.query,
+          value: q.value >= 5000 ? 'Breakout' : q.value,
+        }))
+        const maxTop = Math.max(...topList.map(q => q.value), 1)
+        topQueries = topList.slice(0, 8).map(q => ({
+          query: q.query,
+          value: Math.round((q.value / maxTop) * 100),
+        }))
       } catch (_) {}
     }
 
