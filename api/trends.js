@@ -1,21 +1,28 @@
 import googleTrends from 'google-trends-api'
-import https from 'https'
 
-// Google Autocomplete — kostenlos, nicht geblockt
-function getAutocomplete(query, hl = 'de') {
-  return new Promise((resolve) => {
-    const url = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(query)}&hl=${hl}`
-    https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
-      let data = ''
-      res.on('data', chunk => data += chunk)
-      res.on('end', () => {
-        try {
-          const parsed = JSON.parse(data)
-          resolve(parsed[1] || [])
-        } catch { resolve([]) }
-      })
-    }).on('error', () => resolve([]))
-  })
+// GPT generiert verwandte Suchbegriffe mit echtem Suchvolumen
+async function getRelatedKeywordsFromGPT(keyword) {
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 80,
+        messages: [{
+          role: 'user',
+          content: `Gib mir exakt 4 verwandte deutsche Google-Suchbegriffe zu "${keyword}". Diese müssen echtes Suchvolumen haben (bekannte Begriffe, Tools, Plattformen oder Konzepte in der Branche). Antworte NUR mit einem JSON-Array: ["Begriff1","Begriff2","Begriff3","Begriff4"]`,
+        }],
+      }),
+    })
+    const json = await res.json()
+    const text = json.choices?.[0]?.message?.content?.trim() || '[]'
+    const match = text.match(/\[.*\]/s)
+    return match ? JSON.parse(match[0]) : []
+  } catch { return [] }
 }
 
 export default async function handler(req, res) {
@@ -72,14 +79,7 @@ export default async function handler(req, res) {
 
     let _debugRelated = {}
     try {
-      const suggestions = await getAutocomplete(keyword)
-      _debugRelated.suggestions = suggestions
-
-      // Nur das exakte Haupt-Keyword rausfiltern, Long-Tail-Varianten behalten
-      const lowerKw = keyword.toLowerCase()
-      const candidates = suggestions
-        .filter(s => s.toLowerCase() !== lowerKw)
-        .slice(0, 4)
+      const candidates = await getRelatedKeywordsFromGPT(keyword)
       _debugRelated.candidates = candidates
 
       if (candidates.length > 0) {
