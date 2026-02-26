@@ -272,14 +272,6 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
     })
   }
 
-  // Fallback: wenn API keine topQueries liefert, Top-Monate aus timelineData ableiten
-  const topQDisplay = (() => {
-    if (trendData?.topQueries?.length > 0) return trendData.topQueries
-    const items = [...(trendData?.timelineData || [])].sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 6)
-    const maxVal = Math.max(...items.map(d => d.value || 0), 1)
-    return items.map(d => ({ query: d.date, value: Math.round(((d.value || 0) / maxVal) * 100) }))
-  })()
-
   const trendColor = trendData?.trend === 'rising'
     ? { background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e' }
     : trendData?.trend === 'falling'
@@ -534,27 +526,23 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                 </div>
               </div>
             )}
-            {topQDisplay.length > 0 && (
+            {trendData.topQueries.length > 0 && (
               <div style={card} className="p-5">
-                <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
-                  📊 {trendData.topQueries?.length > 0 ? 'Top Suchanfragen' : 'Stärkste Monate'}
-                </p>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 14 }}>
-                  {trendData.topQueries?.length > 0 ? 'Dauerhaft beliebteste Themen' : 'Monate mit höchstem Suchinteresse'}
-                </p>
+                <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>📊 Top Suchanfragen</p>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 14 }}>Dauerhaft beliebteste Themen</p>
                 <div className="space-y-3">
-                  {topQDisplay.map((q, i) => (
+                  {trendData.topQueries.map((q, i) => (
                     <button
                       key={i}
-                      onClick={() => trendData.topQueries?.length > 0 && handleSearch(q.query)}
-                      style={{ width: '100%', textAlign: 'left', cursor: trendData.topQueries?.length > 0 ? 'pointer' : 'default', background: 'none', border: 'none', padding: 0 }}
+                      onClick={() => handleSearch(q.query)}
+                      style={{ width: '100%', textAlign: 'left', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>{q.query}</span>
                         <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{q.value}</span>
                       </div>
                       <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 999, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', background: '#D4952B', borderRadius: 999, width: `${q.value}%` }} />
+                        <div style={{ height: '100%', background: '#D4952B', borderRadius: 999, width: `${Math.round((q.value / 100) * 100)}%` }} />
                       </div>
                     </button>
                   ))}
