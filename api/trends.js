@@ -1,4 +1,22 @@
 import googleTrends from 'google-trends-api'
+import https from 'https'
+
+// Google Autocomplete — kostenlos, nicht geblockt
+function getAutocomplete(query, hl = 'de') {
+  return new Promise((resolve) => {
+    const url = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(query)}&hl=${hl}`
+    https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
+      let data = ''
+      res.on('data', chunk => data += chunk)
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data)
+          resolve(parsed[1] || [])
+        } catch { resolve([]) }
+      })
+    }).on('error', () => resolve([]))
+  })
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
@@ -48,70 +66,55 @@ export default async function handler(req, res) {
     const olderAvg = older3.reduce((a, b) => a + b, 0) / (older3.length || 1)
     const trend = recentAvg > olderAvg * 1.1 ? 'rising' : recentAvg < olderAvg * 0.9 ? 'falling' : 'stable'
 
-    // 2. Related Queries — zuerst mit Geo, dann global als Fallback
+    // 2. Related Queries via Google Autocomplete + interestOverTime
     let risingQueries = []
     let topQueries = []
 
-    const parseRelated = (raw) => {
-      const json = JSON.parse(raw)
-      const queryData = json.default?.rankedList || []
-      const risingList = queryData[0]?.rankedKeyword || []
-      const topList = queryData[1]?.rankedKeyword || []
-      return { risingList, topList }
-    }
-
-    // Versuch 1: mit Geo
     try {
-      const raw = await googleTrends.relatedQueries({ keyword, geo, startTime })
-      const { risingList, topList } = parseRelated(raw)
-      if (topList.length > 0 || risingList.length > 0) {
-        risingQueries = risingList.slice(0, 8).map(q => ({
-          query: q.query,
-          value: q.value >= 5000 ? 'Breakout' : q.value,
+      // Autocomplete-Vorschläge holen (z.B. "KI & Automatisierung ..." → 8 Vorschläge)
+      const suggestions = await getAutocomplete(keyword)
+      const candidates = suggestions.filter(s => s !== keyword).slice(0, 5)
+
+      if (candidates.length > 0) {
+        // Trend-Scores für alle Kandidaten + Keyword gleichzeitig holen
+        const allKw = [keyword, ...candidates]
+        const raw = await googleTrends.interestOverTime({ keyword: allKw, geo, startTime })
+        const json = JSON.parse(raw)
+        const items = json.default?.timelineData || []
+
+        // Durchschnittswert pro Keyword über den Zeitraum
+        const avgScores = allKw.map((kw, idx) => {
+          const vals = items.map(it => it.value?.[idx] || 0)
+          const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
+          return { query: kw, avg: Math.round(avg) }
+        })
+
+        // Ohne das Haupt-Keyword, nur die Kandidaten
+        const related = avgScores.slice(1).filter(e => e.avg > 0).sort((a, b) => b.avg - a.avg)
+        const maxVal = Math.max(...related.map(e => e.avg), 1)
+
+        topQueries = related.map(e => ({
+          query: e.query,
+          value: Math.round((e.avg / maxVal) * 100),
         }))
-        const maxTop = Math.max(...topList.map(q => q.value), 1)
-        topQueries = topList.slice(0, 8).map(q => ({
-          query: q.query,
-          value: Math.round((q.value / maxTop) * 100),
-        }))
+
+        // Aktuelle vs. vergangene Periode für "Zunehmend"-Berechnung
+        const half = Math.floor(items.length / 2)
+        risingQueries = related.map(e => {
+          const idx = allKw.indexOf(e.query)
+          const recent = items.slice(half).map(it => it.value?.[idx] || 0)
+          const older = items.slice(0, half).map(it => it.value?.[idx] || 0)
+          const recentAvg = recent.reduce((a, b) => a + b, 0) / (recent.length || 1)
+          const olderAvg = older.reduce((a, b) => a + b, 0) / (older.length || 1)
+          const change = olderAvg > 0 ? Math.round(((recentAvg - olderAvg) / olderAvg) * 100) : null
+          return { query: e.query, value: change !== null && change > 4999 ? 'Breakout' : (change ?? 0) }
+        }).filter(e => e.value !== 0).sort((a, b) => {
+          const va = a.value === 'Breakout' ? 9999 : a.value
+          const vb = b.value === 'Breakout' ? 9999 : b.value
+          return vb - va
+        })
       }
     } catch (_) {}
-
-    // Versuch 2: global (kein Geo), falls Geo-Abfrage blockiert/leer
-    if (topQueries.length === 0 && risingQueries.length === 0) {
-      try {
-        const raw = await googleTrends.relatedQueries({ keyword, geo: '', startTime })
-        const { risingList, topList } = parseRelated(raw)
-        risingQueries = risingList.slice(0, 8).map(q => ({
-          query: q.query,
-          value: q.value >= 5000 ? 'Breakout' : q.value,
-        }))
-        const maxTop = Math.max(...topList.map(q => q.value), 1)
-        topQueries = topList.slice(0, 8).map(q => ({
-          query: q.query,
-          value: Math.round((q.value / maxTop) * 100),
-        }))
-      } catch (_) {}
-    }
-
-    // Versuch 3: kürzerer Zeitraum (90 Tage global)
-    if (topQueries.length === 0 && risingQueries.length === 0) {
-      try {
-        const shortStart = new Date()
-        shortStart.setMonth(shortStart.getMonth() - 3)
-        const raw = await googleTrends.relatedQueries({ keyword, geo: '', startTime: shortStart })
-        const { risingList, topList } = parseRelated(raw)
-        risingQueries = risingList.slice(0, 8).map(q => ({
-          query: q.query,
-          value: q.value >= 5000 ? 'Breakout' : q.value,
-        }))
-        const maxTop = Math.max(...topList.map(q => q.value), 1)
-        topQueries = topList.slice(0, 8).map(q => ({
-          query: q.query,
-          value: Math.round((q.value / maxTop) * 100),
-        }))
-      } catch (_) {}
-    }
 
     // 3. Related Topics
     let risingTopics = []
