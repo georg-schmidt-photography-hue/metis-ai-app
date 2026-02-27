@@ -107,14 +107,16 @@ export default async function handler(req, res) {
     let topQueries = []
 
     try {
-      // Kandidaten holen: Autocomplete zuerst
-      let candidates = (await getAutocomplete(keyword))
-        .filter(s => s.toLowerCase() !== keyword.toLowerCase())
-        .slice(0, 8)
-
-      // Fallback zu GPT wenn Autocomplete < 3 brauchbare Vorschläge
-      if (candidates.length < 3) {
+      // Kurze Keywords (Abkürzungen) → direkt GPT; sonst Autocomplete
+      let candidates = []
+      if (keyword.trim().length <= 3) {
         candidates = await getRelatedFromGPT(keyword)
+      } else {
+        candidates = (await getAutocomplete(keyword))
+          .filter(s => s.toLowerCase() !== keyword.toLowerCase())
+          .slice(0, 8)
+        // Fallback zu GPT wenn Autocomplete < 3 brauchbare Vorschläge
+        if (candidates.length < 3) candidates = await getRelatedFromGPT(keyword)
       }
 
       // 2 Batches à max. 4 Kandidaten parallel abfragen
