@@ -529,7 +529,7 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                         <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.query}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                           <div style={{ width: 60, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 999, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', background: '#4e8cff', borderRadius: 999, width: `${q.value}%` }} />
+                            <div style={{ height: '100%', background: '#D4952B', borderRadius: 999, width: `${q.value}%` }} />
                           </div>
                           <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', width: 28, textAlign: 'right' }}>{q.value}</span>
                         </div>
@@ -563,7 +563,7 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                         <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.query}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                           <div style={{ width: 24, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 999, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', background: '#4e8cff', borderRadius: 999, width: '60%' }} />
+                            <div style={{ height: '100%', background: '#D4952B', borderRadius: 999, width: q.value === 'Breakout' ? '100%' : `${Math.min(100, Math.abs(q.value))}%` }} />
                           </div>
                           <span style={{ fontSize: 11, color: '#D4952B', fontWeight: 600, minWidth: 56, textAlign: 'right' }}>
                             {q.value === 'Breakout' ? 'Breakout' : `+${q.value} %`}
