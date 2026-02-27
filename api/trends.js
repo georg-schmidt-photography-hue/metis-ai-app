@@ -14,7 +14,7 @@ async function getRelatedKeywordsFromGPT(keyword) {
         max_tokens: 80,
         messages: [{
           role: 'user',
-          content: `Gib mir exakt 4 verwandte deutsche Google-Suchbegriffe zu "${keyword}". Diese müssen echtes Suchvolumen haben (bekannte Begriffe, Tools, Plattformen oder Konzepte in der Branche). Antworte NUR mit einem JSON-Array: ["Begriff1","Begriff2","Begriff3","Begriff4"]`,
+          content: `Gib mir exakt 6 verwandte Google-Suchbegriffe zu "${keyword}" die in Deutschland häufig gesucht werden. Bevorzuge: bekannte Tools (z.B. ChatGPT, n8n, Zapier), populäre Plattformen, bekannte Markennamen und häufig gesuchte Oberbegriffe. Keine zu spezifischen Nischenbegriffe. Antworte NUR mit einem JSON-Array: ["Begriff1","Begriff2","Begriff3","Begriff4","Begriff5","Begriff6"]`,
         }],
       }),
     })
@@ -79,7 +79,8 @@ export default async function handler(req, res) {
 
     let _debugRelated = {}
     try {
-      const candidates = await getRelatedKeywordsFromGPT(keyword)
+      const allCandidates = await getRelatedKeywordsFromGPT(keyword)
+      const candidates = allCandidates.slice(0, 4)
       _debugRelated.candidates = candidates
 
       if (candidates.length > 0) {
