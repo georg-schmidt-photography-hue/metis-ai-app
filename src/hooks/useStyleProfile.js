@@ -2,17 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 const STORAGE_KEY = 'metis_style_profile'
-
-function getSessionId() {
-  let id = localStorage.getItem('metis_session_id')
-  if (!id) {
-    id = 'sess_' + Math.random().toString(36).slice(2) + Date.now().toString(36)
-    localStorage.setItem('metis_session_id', id)
-  }
-  return id
-}
-
-const SESSION_ID = getSessionId()
+const SESSION_ID = 'default'
 
 export function useStyleProfile() {
   const [styleProfile, setStyleProfile] = useState(null)
@@ -26,7 +16,8 @@ export function useStyleProfile() {
         const { data, error } = await supabase
           .from('style_profiles')
           .select('*')
-          .eq('session_id', SESSION_ID)
+          .order('updated_at', { ascending: false })
+          .limit(1)
           .maybeSingle()
 
         if (error) throw error
