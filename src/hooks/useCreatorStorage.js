@@ -26,7 +26,6 @@ export function useCreatorStorage() {
         const { data, error } = await supabase
           .from('saved_creators')
           .select('*')
-          .eq('session_id', SESSION_ID)
           .order('saved_at', { ascending: false })
 
         if (error) throw error
