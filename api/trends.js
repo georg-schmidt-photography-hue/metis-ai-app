@@ -77,25 +77,20 @@ export default async function handler(req, res) {
     let risingQueries = []
     let topQueries = []
 
-    let _debugRelated = {}
     try {
       const allCandidates = await getRelatedKeywordsFromGPT(keyword)
       const candidates = allCandidates.slice(0, 4)
-      _debugRelated.candidates = candidates
 
       if (candidates.length > 0) {
         const allKw = [keyword, ...candidates]
         const raw = await googleTrends.interestOverTime({ keyword: allKw, geo, startTime })
         const json = JSON.parse(raw)
         const items = json.default?.timelineData || []
-        _debugRelated.itemsCount = items.length
-
         const avgScores = allKw.map((kw, idx) => {
           const vals = items.map(it => it.value?.[idx] || 0)
           const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
           return { query: kw, avg: Math.round(avg) }
         })
-        _debugRelated.avgScores = avgScores
 
         const related = avgScores.slice(1).filter(e => e.avg > 0).sort((a, b) => b.avg - a.avg)
         const maxVal = Math.max(...related.map(e => e.avg), 1)
@@ -147,7 +142,6 @@ export default async function handler(req, res) {
       topQueries,
       risingTopics,
       topTopics: [],
-      _debug: _debugRelated,
     })
   } catch (err) {
     res.status(500).json({ error: err.message || 'Trend-Analyse fehlgeschlagen' })
