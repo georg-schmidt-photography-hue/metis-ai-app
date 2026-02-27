@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
   try {
     const startTime = new Date()
-    startTime.setMonth(startTime.getMonth() - 12)
+    startTime.setDate(startTime.getDate() - 90)
 
     const keywords = compareWith ? [keyword, compareWith] : [keyword]
 

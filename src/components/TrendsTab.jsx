@@ -390,7 +390,7 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
             </div>
             {trendData && (
               <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>
-                {trendData.keyword} · letzten 30 Tage
+                {trendData.keyword} · letzten 90 Tage
               </p>
             )}
           </div>
@@ -510,7 +510,7 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                 <div style={card} className="p-5">
                   <div style={{ marginBottom: 16 }}>
                     <p style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.85)', marginBottom: 2 }}>Top-Suchanfragen</p>
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>Deutschland · Letztes Jahr</p>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>Deutschland · Letzte 90 Tage</p>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                     <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Suchanfrage</span>
@@ -544,7 +544,7 @@ export default function TrendsTab({ savedCreators, onCreatePost }) {
                 <div style={card} className="p-5">
                   <div style={{ marginBottom: 16 }}>
                     <p style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.85)', marginBottom: 2 }}>Zunehmende Suchanfragen</p>
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>Deutschland · Letztes Jahr</p>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>Deutschland · Letzte 90 Tage</p>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                     <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Suchanfrage</span>
